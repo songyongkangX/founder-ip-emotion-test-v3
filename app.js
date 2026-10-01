@@ -131,13 +131,13 @@ const scenarioQuestions = [
   ['情景反应', '认识多年的朋友请你免费打广告，你会怎么回应？', [['时间有价，可以帮但不免费', '恶+2，怒+1'], ['这次免费，下次收费', '爱+1，恶+1'], ['直接拒绝免费推广', '恶+2'], ['为难但最后还是帮了', '爱+2']], 'single', 1],
   ['情景反应', '看到圈里有人用明显有问题的模式割韭菜，你会怎么做？', [['发视频公开批评', '怒+2'], ['在社群里提醒学员', '恶+1，爱+1'], ['专注做自己的事', '恶+1，喜+1'], ['心疼受害者但不知道该不该管', '哀+2，爱+1']], 'single', 1]
 ];
-const questions = [...baseQuestions.slice(0, 4), ...mbtiQuestions, ...profileQuestions, ...baseQuestions.slice(4, 7), ...scenarioQuestions, ...baseQuestions.slice(7)];
+const questions = [...baseQuestions.slice(0, 4), ...profileQuestions, ...baseQuestions.slice(4, 7), ...scenarioQuestions, ...baseQuestions.slice(7, 13), ...mbtiQuestions, ...baseQuestions.slice(13)];
 
 let current = 0;
 let answers = Array.from({ length: questions.length }, () => []);
 let mbtiType = '未完成';
-const CACHE_KEY = 'founder-emotion-assessment-v3';
-const CACHE_VERSION = 3;
+const CACHE_KEY = 'founder-emotion-assessment-v4';
+const CACHE_VERSION = 4;
 const scores = () => Object.fromEntries(Object.keys(emotions).map(key => [key, 0]));
 const $ = id => document.getElementById(id);
 const scoreFromText = text => { const result = {}; [...text.matchAll(/([怒喜哀惧爱恶欲])\+(\d)/g)].forEach(match => { result[match[1]] = Number(match[2]); }); return result; };
@@ -210,7 +210,7 @@ function loadSharedResult() { const encoded = new URLSearchParams(window.locatio
 function renderQuestion() {
   const [section, title, options, mode, maxSelection] = questions[current];
   const optional = current >= questions.length - 2;
-  const sectionLabel = current < 4 ? '第一部分 · 行业与产品' : current < 12 ? '第二部分 · MBTI 快速测评' : current < 16 ? '第三部分 · 用户画像' : current < 19 ? '第四部分 · 用户心理' : current < 25 ? '第五部分 · 情景反应' : current < 31 ? '第六部分 · 个人特质' : '第七部分 · 八字五行（可选）';
+  const sectionLabel = current < 4 ? '第一部分 · 行业与产品' : current < 8 ? '第二部分 · 用户画像' : current < 11 ? '第三部分 · 用户心理' : current < 17 ? '第四部分 · 情景反应' : current < 23 ? '第五部分 · 个人特质' : current < 31 ? '第六部分 · MBTI 快速测评' : '第七部分 · 八字五行（可选）';
   $('sectionLabel').textContent = sectionLabel;
   $('questionTitle').textContent = title; $('currentNumber').textContent = String(current + 1).padStart(2, '0'); $('progressBar').style.width = `${((current + 1) / questions.length) * 100}%`; $('skipHint').textContent = mode === 'single' ? '单选题 · 请选择最符合的一项' : `多选题 · 最多选择 ${maxSelection} 项`;
   const modeLabel = mode === 'single' ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
@@ -246,7 +246,7 @@ function calculate() {
     }
     return left;
   };
-  mbtiType = `${axis('E', 'I', [10, 6, 8, 4])}${axis('S', 'N', [10, 5, 9, 6])}${axis('T', 'F', [7, 8, 5, 11])}${axis('J', 'P', [11, 9, 7, 4])}`;
+  mbtiType = `${axis('E', 'I', [29, 25, 27, 23])}${axis('S', 'N', [29, 24, 28, 25])}${axis('T', 'F', [26, 27, 24, 30])}${axis('J', 'P', [30, 28, 26, 23])}`;
   return Object.entries(total).sort((a, b) => b[1] - a[1]);
 }
 function renderAdvancedInsights(primary, support, ranked) {
@@ -267,7 +267,7 @@ function renderAdvancedInsights(primary, support, ranked) {
   $('visualGuideList').innerHTML = camera.visual.map((text, index) => `<li><span>${visualLabels[index]}</span><strong>${text}</strong></li>`).join('');
   $('audioGuideList').innerHTML = camera.audio.map((text, index) => `<li><span>${audioLabels[index]}</span><strong>${text}</strong></li>`).join('');
 
-  const selectedAppearanceIndex = Number.isInteger(answers[28][0]) ? answers[28][0] : 0;
+  const selectedAppearanceIndex = Number.isInteger(answers[20][0]) ? answers[20][0] : 0;
   const appearance = appearanceStyles[selectedAppearanceIndex] || appearanceStyles[0];
   $('appearanceName').textContent = appearance.name;
   $('appearanceTrust').textContent = appearance.trust;
