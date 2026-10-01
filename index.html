@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>高质感IP情绪表达定位测评</title>
-  <link rel="stylesheet" href="styles.css?v=20260930-ux-upgrade">
+  <link rel="stylesheet" href="styles.css?v=20261001-user-copy-style3">
 </head>
 <body>
   <main class="app-shell">
@@ -18,7 +18,7 @@
         <p class="eyebrow">FOUNDER IP / EMOTIONAL POSITIONING</p>
         <h1>高质感IP<br><em>情绪表达定位测评</em></h1>
         <p class="intro-description">用情绪表达做爆款，让更多人看到你<br>用信任表达做成交，让更多人选择你<br>通过 MBTI、七情情绪和用户画像<br>找到最适合你的短视频表达风格与拍摄方向</p>
-        <div class="intro-actions"><button id="startButton" class="button button-primary">开始测评 <span>→</span></button><button id="continueButton" class="button button-continue hidden">继续上次测评 <span>→</span></button><span id="progressArchiveNote" class="micro-note">33 题 · 约 10 分钟</span></div>
+        <div class="intro-actions"><button id="startButton" class="button button-primary">开始测评 <span>→</span></button><span class="micro-note">33 题 · 约 10 分钟 · 含 2 题可选</span></div>
         <div class="intro-orbit" aria-hidden="true">
           <div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div>
           <div class="orbit-core"><span>情绪</span><strong>表达</strong></div>
@@ -35,49 +35,43 @@
     </section>
 
     <section id="resultView" class="view result-view hidden">
-      <div class="result-heading"><div><p class="eyebrow">YOUR EMOTIONAL IDENTITY</p><h2>你的高质感 IP 情绪定位</h2><p>先认识你的主情绪人格，再把它变成用户能记住的表达方式。</p></div><div class="result-actions"><button id="saveImageButton" class="button button-primary">保存精华结果卡</button><button id="restartButton" class="button button-ghost">重新测评</button></div></div>
+      <div class="result-heading"><div><p class="eyebrow">YOUR EMOTIONAL FORMULA</p><h2>这就是你的创始人信号</h2><p>把真实的你，变成用户能持续感受到的内容气质。</p></div><div class="result-actions"><button id="saveImageButton" class="button button-primary">保存图片</button><button id="restartButton" class="button button-ghost">重新测评</button></div></div>
       <div id="dominantResult" class="dominant-result">
         <div class="dominant-orb"><span id="dominantEmotion">怒</span><small>主情绪</small></div>
-        <div class="dominant-copy"><p class="eyebrow">YOUR EMOTIONAL PERSONALITY</p><h3>你是 <strong id="dominantType">立场型人格</strong></h3><p id="dominantSummary">适合在简洁、专业的场景中，用坚定直接的口播表达观点与边界。</p><div class="dominant-meta"><span id="mbtiResult">MBTI · --</span><span id="emotionFormula">情绪配方 · --</span></div><div class="signal-strength"><div><span>表达信号强度</span><strong id="signalStrength">正在分析</strong></div><div class="signal-meter" role="progressbar" aria-label="表达信号强度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="signalStrengthFill"></i></div><p id="signalStrengthCopy"></p></div></div>
-        <div class="dominant-badge">主人格<br><strong>01</strong></div>
+        <div class="dominant-copy"><p class="eyebrow">YOUR DOMINANT SIGNAL</p><h3><strong id="dominantType">立场型</strong>人格</h3><p id="dominantSummary">你最适合用清晰的立场和边界，让用户迅速记住你。</p><div class="dominant-meta"><span id="dominantScore">得分 0</span><span id="dominantPurpose">建立人设、替用户说话</span></div></div>
+        <div class="dominant-badge">TOP<br><strong>01</strong></div>
       </div>
-      <nav class="result-directory" aria-label="结果页目录"><span>快速查看</span><button type="button" data-scroll-target="positioningSection">情绪人格</button><button type="button" data-scroll-target="firstVideoSection">第一条视频</button><button type="button" data-scroll-target="topicSection">选题方向</button><button type="button" data-scroll-target="shootStyleSection">拍摄风格</button><button type="button" data-scroll-target="barrierSection">成交策略</button><button type="button" data-scroll-target="deepGuideSection">七情指南</button></nav>
-      <section id="positioningSection" class="positioning-section">
-        <div class="section-heading"><div><p class="eyebrow">EMOTIONAL PERSONALITY</p><h3>你的情绪表达定位</h3><p>像认识 MBTI 一样，先看懂你最自然、最有辨识度的三种表达人格。</p></div></div>
-        <div id="emotionPersonaGrid" class="emotion-persona-grid"></div>
-        <div class="avoid-heading"><span class="panel-label">USE LESS / 适度避开</span><p>不是完全不能用，而是不建议把它们作为你的日常主表达。</p></div>
-        <div id="avoidGuide" class="avoid-guide-grid"></div>
+      <div id="resultCard" class="result-card">
+        <div class="result-card-top"><div><span class="card-kicker">FOUNDER IP PROFILE</span><h3 id="resultTitle">正在生成...</h3><p id="resultSubtitle"></p></div><div class="score-stamp">IP<br><strong>07</strong></div></div>
+        <div id="scoreBars" class="score-bars"></div>
+        <div class="recipe-row"><div><span>主情绪</span><strong id="primaryEmotion"></strong></div><div><span>辅助情绪</span><strong id="supportEmotions"></strong></div><div><span>内容配比</span><strong id="contentRatio"></strong></div></div>
+      </div>
+      <div class="result-highlights"><div class="highlight-card"><span class="highlight-icon">✦</span><div><strong id="completionCopy">完成度 100%</strong><small>你的回答已形成完整画像</small></div></div><div class="highlight-card"><span class="highlight-icon">◎</span><div><strong id="signalCopy">情绪信号清晰</strong><small>内容表达具有稳定识别度</small></div></div><div class="highlight-card"><span class="highlight-icon">✧</span><div><strong>可直接执行</strong><small>已有明确的视频内容方向</small></div></div></div>
+      <div class="emotion-tags"><span class="eyebrow">YOUR SIGNAL TAGS</span><div id="emotionTags" class="tag-list"></div></div>
+      <div class="result-grid"><article class="insight-panel"><p class="eyebrow">CONTENT DIRECTION</p><h3>高质感IP情绪表达定位测评</h3><div id="contentAdvice"></div></article><article class="insight-panel"><p class="eyebrow">AVOID THE NOISE</p><h3>适度避开</h3><p id="avoidAdvice"></p><div class="action-line"><span>下一步</span><strong>把主情绪写进你的选题表</strong></div></article></div>
+      <section class="camera-strategy-section">
+        <div class="camera-strategy-heading"><p class="eyebrow">YOUR CAMERA PRESENCE</p><h3>让你的第一眼信任，和内容表达站在一起</h3><p>长相不是赛道限制，而是用户认识你的入口。下面的视觉、听觉和选题建议，均以你的主情绪与外在风格共同生成。</p></div>
+        <div class="sensory-grid">
+          <article class="sensory-panel visual-panel"><div class="sensory-title"><span>01</span><div><p>VISUAL</p><h4>视觉呈现建议</h4></div></div><ul id="visualGuideList" class="strategy-list"></ul></article>
+          <article class="sensory-panel audio-panel"><div class="sensory-title"><span>02</span><div><p>AUDIO</p><h4>听觉表达建议</h4></div></div><ul id="audioGuideList" class="strategy-list"></ul></article>
+        </div>
+        <article class="appearance-spotlight">
+          <div class="appearance-index">03</div>
+          <div class="appearance-main"><p class="eyebrow">APPEARANCE × TRUST</p><h4 id="appearanceName">都市睿智型</h4><p>你最容易建立的第一眼信任：<strong id="appearanceTrust"></strong></p></div>
+          <div class="appearance-details"><div><span>适合方向</span><strong id="appearanceFit"></strong></div><div><span>妆造与表达</span><strong id="appearanceStyling"></strong></div><div class="appearance-warning"><span>避免</span><strong id="appearanceAvoid"></strong></div></div>
+        </article>
+        <div class="comparison-heading"><div><p class="eyebrow">8 APPEARANCE STYLES</p><h4>八类外在风格对照</h4></div><p>高亮项是你的当前选择。专业和结果决定最终选择，外在风格决定信任从哪里开始。</p></div>
+        <div id="appearanceComparisonGrid" class="appearance-comparison-grid"></div>
+        <div class="topic-heading"><p class="eyebrow">TOPIC STARTERS</p><h4>现在就能拍的选题建议</h4></div>
+        <div id="topicSuggestionGrid" class="topic-suggestion-grid"></div>
       </section>
-      <div class="action-transition"><span>从认识自己，到开始表达</span><strong>接下来，把你的情绪定位真正拍出来</strong></div>
-      <section id="firstVideoSection" class="action-section first-video-section">
-        <div class="section-heading"><div><p class="eyebrow">SHOOT THIS FIRST</p><h3>第一条视频，直接这样拍</h3></div><span class="section-number">01</span></div>
-        <div id="firstVideoPlan" class="first-video-plan"></div>
+      <section class="advanced-section">
+        <div class="advanced-heading"><p class="eyebrow">FROM SIGNAL TO CAMERA</p><h3>把情绪定位拍出来</h3><p>结合你的 MBTI、用户画像和真实表达习惯，生成可直接执行的内容方向。</p></div>
+        <div id="executionGrid" class="execution-grid"></div>
+        <div class="emotion-guide-heading"><p class="eyebrow">SEVEN EMOTIONS</p><h3>七情深度理解与拍摄指南</h3></div>
+        <div id="emotionGuideGrid" class="emotion-guide-grid"></div>
       </section>
-      <section id="topicSection" class="action-section">
-        <div class="section-heading"><div><p class="eyebrow">WHAT TO SHOOT</p><h3>你的 5 个内容方向</h3><p>每个方向都给你 3 个可直接改写的选题。</p></div><span class="section-number">02</span></div>
-        <div id="topicDirectionGrid" class="topic-direction-grid"></div>
-      </section>
-      <section id="shootStyleSection" class="action-section">
-        <div class="section-heading"><div><p class="eyebrow">HOW TO SHOOT</p><h3>你的镜头与表达风格</h3><p>从画面、声音到节奏，一次定清楚。</p></div><span class="section-number">03</span></div>
-        <div class="shoot-style-grid"><article class="shoot-style-panel"><span class="panel-label">VISUAL / 视觉</span><div id="visualGuide" class="detail-list"></div></article><article class="shoot-style-panel audio-panel"><span class="panel-label">VOICE / 听觉</span><div id="audioGuide" class="detail-list"></div></article></div>
-      </section>
-      <section class="action-section">
-        <div class="section-heading"><div><p class="eyebrow">CONTENT MIX</p><h3>辅助情绪怎么穿插</h3><p>主情绪负责被记住，辅助情绪负责建立信任与推动成交。</p></div><span class="section-number">04</span></div>
-        <div id="supportGuide" class="support-guide-grid"></div>
-      </section>
-      <section class="action-section trust-section">
-        <div class="section-heading"><div><p class="eyebrow">MAKE IT REAL</p><h3>别演情绪，调用真实经历</h3></div><span class="section-number">05</span></div>
-        <div id="authenticityGuide" class="authenticity-guide"></div>
-      </section>
-      <section id="barrierSection" class="action-section barrier-section">
-        <div class="section-heading"><div><p class="eyebrow">REMOVE THE OBJECTION</p><h3>用户为什么不买，你该怎么拍</h3><p>针对你勾选的付费障碍，用内容提前完成解释与信任建设。</p></div><span class="section-number">06</span></div>
-        <div id="barrierGuide" class="barrier-guide-grid"></div>
-      </section>
-      <section id="deepGuideSection" class="action-section deep-guide-section">
-        <div class="section-heading"><div><p class="eyebrow">SEVEN EMOTIONS</p><h3>七情深度理解与拍摄指南</h3><p>看懂七种情绪分别在打动谁、建立什么感受，以及怎样呈现在镜头里。</p></div><span class="section-number">07</span></div>
-        <div id="deepEmotionGrid" class="deep-emotion-grid"></div>
-      </section>
-      <section id="resultCta" class="result-cta" aria-label="领取拍摄资料">
+      <section class="result-cta" aria-label="领取拍摄资料">
         <div class="result-cta-copy">
           <p class="eyebrow">TAKE THE NEXT STEP</p>
           <h3>恭喜你已经找到<br><span class="result-cta-title-line">最适合自己的拍摄风格啦！</span></h3>
@@ -89,21 +83,22 @@
           <small>扫码添加微信领取</small>
         </div>
       </section>
-      <section id="summaryPoster" class="summary-poster" aria-hidden="true">
-        <div class="poster-brand"><span>IP</span><div><strong>高质感 IP 情绪定位</strong><small>EMOTIONAL PERSONALITY REPORT</small></div></div>
-        <div class="poster-heading"><p>你的主情绪人格</p><h2 id="posterPersonality">立场型人格</h2><span id="posterPrimaryEmotion">怒</span></div>
-        <p id="posterIdentity" class="poster-identity"></p>
-        <div class="poster-meta"><span id="posterMbti">MBTI · --</span><span id="posterConfidence">表达信号 · --</span></div>
-        <div id="posterFormula" class="poster-formula"></div>
-        <div class="poster-guidance"><div><span>你要怎么说</span><strong id="posterVoice"></strong></div><div><span>你适合怎么拍</span><strong id="posterScene"></strong></div><div><span>内容表达结构</span><strong id="posterStructure"></strong></div></div>
-        <div class="poster-first-topic"><span>建议首拍</span><strong id="posterTopic"></strong></div>
-        <div class="poster-footer"><div><strong>把真实的你<br>变成用户记得住的表达</strong><small>扫码领取《高质感 IP 拍摄清单》</small></div><img src="assets/wechat-qr.png" alt="领取高质感 IP 拍摄清单"></div>
-      </section>
     </section>
   </main>
   <footer><span>创始人 IP 情绪风格测评</span><span>Make your signal unmistakable.</span></footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="resumeModal" class="resume-modal hidden" role="dialog" aria-modal="true" aria-labelledby="resumeTitle">
+    <div class="resume-dialog">
+      <button id="resumeCloseButton" class="resume-close" type="button" aria-label="关闭">×</button>
+      <span class="resume-mark">↺</span>
+      <p class="eyebrow">LOCAL AUTO SAVE</p>
+      <h2 id="resumeTitle">继续上次的测评吗？</h2>
+      <p id="resumeDescription">你的答题进度已保存在当前设备。</p>
+      <div class="resume-actions"><button id="resumeContinueButton" class="button button-primary">接着答题</button><button id="resumeRestartButton" class="button button-ghost">重新开始</button></div>
+      <small>数据仅保存在当前浏览器，不会上传。</small>
+    </div>
+  </div>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="app.js?v=20260930-ux-upgrade"></script>
+  <script src="app.js?v=20261001-user-copy-style3"></script>
 </body>
 </html>
