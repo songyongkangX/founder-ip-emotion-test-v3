@@ -108,14 +108,14 @@ const baseQuestions = [
 ];
 
 const mbtiQuestions = [
-  ['MBTI 快速测评', '一个完全空闲的周末，你最舒服的安排是？', [['约人出门，行程提前定好', 'E+2，J+1'], ['临时约人，哪里有趣就去哪里', 'E+2，P+1'], ['独处充电，并完成自己列好的安排', 'I+2，J+1'], ['独处充电，跟着当下感受自由度过', 'I+2，P+1']], 'single', 1],
-  ['MBTI 快速测评', '面对一个陌生项目，你通常先从哪里开始？', [['先看事实、数据和已验证的方法，再判断利弊', 'S+2，T+1'], ['先看事实与真实案例，再考虑相关人的感受', 'S+2，F+1'], ['先判断趋势与可能性，再搭建逻辑框架', 'N+2，T+1'], ['先感受它的意义与愿景，再考虑对人的影响', 'N+2，F+1']], 'single', 1],
-  ['MBTI 快速测评', '在一场多人讨论里，你更常贡献什么？', [['主动抛出新可能，带大家打开思路', 'N+2，E+1'], ['主动补充事实和执行细节，推动落地', 'S+2，E+1'], ['先听后想，再提出一个关键的新视角', 'N+2，I+1'], ['先观察记录，再指出被忽略的具体问题', 'S+2，I+1']], 'single', 1],
-  ['MBTI 快速测评', '出现意见冲突时，你更自然的处理方式是？', [['按原则和目标做判断，并尽快形成决定', 'T+2，J+1'], ['先分析问题，保留空间边走边调整', 'T+2，P+1'], ['照顾关系与感受，同时推动达成共识', 'F+2，J+1'], ['先让情绪被看见，再寻找双方都舒服的可能', 'F+2，P+1']], 'single', 1],
-  ['MBTI 快速测评', '连续忙碌一周后，你更想怎样恢复？', [['找信任的人聊一聊，也希望得到明确建议', 'E+2，T+1'], ['找信任的人聊一聊，被理解就会好很多', 'E+2，F+1'], ['自己安静梳理问题，想清楚解决办法', 'I+2，T+1'], ['自己安静消化情绪，等内心恢复平衡', 'I+2，F+1']], 'single', 1],
-  ['MBTI 快速测评', '学习一项新技能时，哪种过程更像你？', [['按成熟步骤练习，逐项完成并复盘', 'S+2，J+1'], ['先上手体验，在具体反馈中不断调整', 'S+2，P+1'], ['先理解整体原理，再制定自己的学习路径', 'N+2，J+1'], ['先广泛探索可能性，灵感到了就深入', 'N+2，P+1']], 'single', 1],
-  ['MBTI 快速测评', '准备一条重要内容时，你最常进入哪种状态？', [['边聊边碰撞出新观点，关注内容意味着什么', 'N+2，E+1'], ['边讲边调整，用案例和细节把它说清楚', 'S+2，E+1'], ['独自构思底层观点，想透之后再表达', 'N+2，I+1'], ['独自整理事实素材，把每个细节核实清楚', 'S+2，I+1']], 'single', 1],
-  ['MBTI 快速测评', '临近重要截止时间，你更符合哪一种？', [['按计划收尾，用标准检查最终结果', 'J+2，T+1'], ['按计划收尾，也会确认相关人的体验', 'J+2，F+1'], ['在压力中集中爆发，优先解决最关键的问题', 'P+2，T+1'], ['跟着状态完成，必要时协调大家一起补位', 'P+2，F+1']], 'single', 1]
+  ['MBTI 快速测评', '周末终于没安排，你更想怎么过？', [['约朋友出去玩，顺手把行程安排好', 'E+2，J+1'], ['看心情临时约人，有意思就出发', 'E+2，P+1'], ['一个人充充电，顺便完成自己的小计划', 'I+2，J+1'], ['彻底放空，想干嘛就干嘛', 'I+2，P+1']], 'single', 1],
+  ['MBTI 快速测评', '碰到没做过的事，你通常先？', [['先找攻略和数据，看看哪条路最靠谱', 'S+2，T+1'], ['看看别人真实体验，选自己更舒服的方式', 'S+2，F+1'], ['先想它以后能发展成什么，再理清逻辑', 'N+2，T+1'], ['先看有没有感觉、有没有意义，再考虑对大家的影响', 'N+2，F+1']], 'single', 1],
+  ['MBTI 快速测评', '大家一起聊点子时，你更像？', [['先开口抛脑洞，把气氛带起来', 'N+2，E+1'], ['边聊边补细节，让事情赶紧落地', 'S+2，E+1'], ['先听一会儿，想好后说出一个关键角度', 'N+2，I+1'], ['默默观察，最后提醒大家漏掉的细节', 'S+2，I+1']], 'single', 1],
+  ['MBTI 快速测评', '跟人意见不一样时，你多半会？', [['把道理说清楚，尽快定下来', 'T+2，J+1'], ['先讲逻辑，实在不行就边做边调', 'T+2，P+1'], ['先照顾大家的感受，再一起定方案', 'F+2，J+1'], ['先让对方把话说完，再找双方都舒服的办法', 'F+2，P+1']], 'single', 1],
+  ['MBTI 快速测评', '累了一周，你最想怎么“回血”？', [['找朋友聊聊，也想听个靠谱建议', 'E+2，T+1'], ['找熟人说说话，被理解就舒服多了', 'E+2，F+1'], ['自己待一会儿，把问题想明白', 'I+2，T+1'], ['安静独处，等情绪慢慢恢复', 'I+2，F+1']], 'single', 1],
+  ['MBTI 快速测评', '学一个新东西时，你通常是？', [['跟着教程一步步练，做完再复盘', 'S+2，J+1'], ['先动手，哪里不会再补哪里', 'S+2，P+1'], ['先搞懂原理，再按自己的计划学', 'N+2，J+1'], ['先到处看看，遇到感兴趣的就深挖', 'N+2，P+1']], 'single', 1],
+  ['MBTI 快速测评', '准备一条重要内容时，你更容易？', [['找人聊着聊着冒出新点子', 'N+2，E+1'], ['先讲出来，再用例子越讲越清楚', 'S+2，E+1'], ['一个人把观点想透，再开口', 'N+2，I+1'], ['先把资料和细节理清，再表达', 'S+2，I+1']], 'single', 1],
+  ['MBTI 快速测评', '截止时间快到了，你通常是哪种？', [['早就做得差不多，最后检查一遍', 'J+2，T+1'], ['基本按计划完成，还会看看大家的体验', 'J+2，F+1'], ['越临近越专注，先拿下最关键的部分', 'P+2，T+1'], ['跟着状态冲刺，需要时拉大家一起补位', 'P+2，F+1']], 'single', 1]
 ];
 const profileQuestions = [
   ['用户画像', '你的用户性别主要是？', [['女性为主', '爱+2，哀+1，喜+1'], ['男性为主', '恶+2，怒+1，惧+1'], ['男女比例均衡', '喜+1，恶+1，爱+1']], 'multi', 2],
@@ -131,13 +131,13 @@ const scenarioQuestions = [
   ['情景反应', '认识多年的朋友请你免费打广告，你会怎么回应？', [['时间有价，可以帮但不免费', '恶+2，怒+1'], ['这次免费，下次收费', '爱+1，恶+1'], ['直接拒绝免费推广', '恶+2'], ['为难但最后还是帮了', '爱+2']], 'single', 1],
   ['情景反应', '看到圈里有人用明显有问题的模式割韭菜，你会怎么做？', [['发视频公开批评', '怒+2'], ['在社群里提醒学员', '恶+1，爱+1'], ['专注做自己的事', '恶+1，喜+1'], ['心疼受害者但不知道该不该管', '哀+2，爱+1']], 'single', 1]
 ];
-const questions = [...mbtiQuestions, ...baseQuestions.slice(0, 4), ...profileQuestions, ...baseQuestions.slice(4, 7), ...scenarioQuestions, ...baseQuestions.slice(7)];
+const questions = [...baseQuestions.slice(0, 4), ...mbtiQuestions, ...profileQuestions, ...baseQuestions.slice(4, 7), ...scenarioQuestions, ...baseQuestions.slice(7)];
 
 let current = 0;
 let answers = Array.from({ length: questions.length }, () => []);
 let mbtiType = '未完成';
-const CACHE_KEY = 'founder-emotion-assessment-v2';
-const CACHE_VERSION = 2;
+const CACHE_KEY = 'founder-emotion-assessment-v3';
+const CACHE_VERSION = 3;
 const scores = () => Object.fromEntries(Object.keys(emotions).map(key => [key, 0]));
 const $ = id => document.getElementById(id);
 const scoreFromText = text => { const result = {}; [...text.matchAll(/([怒喜哀惧爱恶欲])\+(\d)/g)].forEach(match => { result[match[1]] = Number(match[2]); }); return result; };
@@ -210,7 +210,7 @@ function loadSharedResult() { const encoded = new URLSearchParams(window.locatio
 function renderQuestion() {
   const [section, title, options, mode, maxSelection] = questions[current];
   const optional = current >= questions.length - 2;
-  const sectionLabel = current < 8 ? '第一部分 · MBTI 快速测评' : current < 12 ? '第二部分 · 行业与产品' : current < 16 ? '第三部分 · 用户画像' : current < 19 ? '第四部分 · 用户心理' : current < 25 ? '第五部分 · 情景反应' : current < 31 ? '第六部分 · 个人特质' : '第七部分 · 八字五行（可选）';
+  const sectionLabel = current < 4 ? '第一部分 · 行业与产品' : current < 12 ? '第二部分 · MBTI 快速测评' : current < 16 ? '第三部分 · 用户画像' : current < 19 ? '第四部分 · 用户心理' : current < 25 ? '第五部分 · 情景反应' : current < 31 ? '第六部分 · 个人特质' : '第七部分 · 八字五行（可选）';
   $('sectionLabel').textContent = sectionLabel;
   $('questionTitle').textContent = title; $('currentNumber').textContent = String(current + 1).padStart(2, '0'); $('progressBar').style.width = `${((current + 1) / questions.length) * 100}%`; $('skipHint').textContent = mode === 'single' ? '单选题 · 请选择最符合的一项' : `多选题 · 最多选择 ${maxSelection} 项`;
   const modeLabel = mode === 'single' ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
@@ -246,7 +246,7 @@ function calculate() {
     }
     return left;
   };
-  mbtiType = `${axis('E', 'I', [6, 2, 4, 0])}${axis('S', 'N', [6, 1, 5, 2])}${axis('T', 'F', [3, 4, 1, 7])}${axis('J', 'P', [7, 5, 3, 0])}`;
+  mbtiType = `${axis('E', 'I', [10, 6, 8, 4])}${axis('S', 'N', [10, 5, 9, 6])}${axis('T', 'F', [7, 8, 5, 11])}${axis('J', 'P', [11, 9, 7, 4])}`;
   return Object.entries(total).sort((a, b) => b[1] - a[1]);
 }
 function renderAdvancedInsights(primary, support, ranked) {
