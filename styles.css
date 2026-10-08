@@ -97,7 +97,7 @@ body.modal-open { overflow: hidden; }
 .advanced-heading h3, .emotion-guide-heading h3 { margin: 0 0 8px; font: 600 28px var(--serif); }
 .advanced-heading p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 13px; }
 .execution-grid, .cross-card-grid, .emotion-guide-grid { display: grid; gap: 12px; }
-.execution-grid { grid-template-columns: repeat(3, 1fr); }
+.execution-grid { grid-template-columns: repeat(2, 1fr); }
 .execution-card, .cross-group, .emotion-guide-card { background: rgba(252,250,255,.78); border: 1px solid var(--line); border-radius: 16px; }
 .execution-card { min-height: 190px; padding: 22px; }
 .execution-card.execution-primary { color: white; background: linear-gradient(135deg, #2b1d43, #6d43d9 70%, #a84bd8); border-color: transparent; }

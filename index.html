@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>高质感IP情绪表达定位测评</title>
-  <link rel="stylesheet" href="styles.css?v=20261008-admin1">
+  <link rel="stylesheet" href="styles.css?v=20261008-admin2">
 </head>
 <body>
   <main class="app-shell">
@@ -17,8 +17,8 @@
       <div class="intro-copy">
         <p class="eyebrow">FOUNDER IP / EMOTIONAL POSITIONING</p>
         <h1>高质感IP<br><em>情绪表达定位测评</em></h1>
-        <p class="intro-description">用情绪表达做爆款，让更多人看到你<br>用信任表达做成交，让更多人选择你<br>通过 MBTI、七情情绪和用户画像<br>找到最适合你的短视频表达风格与拍摄方向</p>
-        <div class="intro-actions"><button id="startButton" class="button button-primary">开始测评 <span>→</span></button><span class="micro-note">33 题 · 约 10 分钟 · 含 2 题可选</span></div>
+        <p class="intro-description">用情绪表达做爆款，让更多人看到你<br>用信任表达做成交，让更多人选择你<br>通过七情情绪、用户画像和表达习惯<br>找到最适合你的短视频表达风格与拍摄方向</p>
+        <div class="intro-actions"><button id="startButton" class="button button-primary">开始测评 <span>→</span></button><span class="micro-note">29 题 · 约 8 分钟 · 含 2 题可选</span></div>
         <div class="intro-orbit" aria-hidden="true">
           <div class="orbit-ring ring-one"></div><div class="orbit-ring ring-two"></div>
           <div class="orbit-core"><span>情绪</span><strong>表达</strong></div>
@@ -28,7 +28,7 @@
     </section>
 
     <section id="quizView" class="view quiz-view hidden">
-      <div class="quiz-header"><div><p id="sectionLabel" class="eyebrow">第一部分 · 行业与产品</p><h2 id="questionTitle">你的行业赛道是？</h2><span id="questionMode" class="question-mode">双选题 · 最多 2 项</span></div><div class="question-count"><strong id="currentNumber">01</strong><span>/ 33</span></div></div>
+      <div class="quiz-header"><div><p id="sectionLabel" class="eyebrow">第一部分 · 行业与产品</p><h2 id="questionTitle">你的行业赛道是？</h2><span id="questionMode" class="question-mode">双选题 · 最多 2 项</span></div><div class="question-count"><strong id="currentNumber">01</strong><span>/ 29</span></div></div>
       <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
       <div id="options" class="options"></div>
       <div class="quiz-footer"><button id="prevButton" class="button button-ghost" disabled>← 上一题</button><span id="skipHint" class="skip-hint">可选择多个最贴近真实情况的选项</span><button id="nextButton" class="button button-dark" disabled>下一题 <span>→</span></button></div>
@@ -66,7 +66,7 @@
         <div id="topicSuggestionGrid" class="topic-suggestion-grid"></div>
       </section>
       <section class="advanced-section">
-        <div class="advanced-heading"><p class="eyebrow">FROM SIGNAL TO CAMERA</p><h3>把情绪定位拍出来</h3><p>结合你的 MBTI、用户画像和真实表达习惯，生成可直接执行的内容方向。</p></div>
+        <div class="advanced-heading"><p class="eyebrow">FROM SIGNAL TO CAMERA</p><h3>把情绪定位拍出来</h3><p>结合你的用户画像和真实表达习惯，生成可直接执行的内容方向。</p></div>
         <div id="executionGrid" class="execution-grid"></div>
         <div class="emotion-guide-heading"><p class="eyebrow">SEVEN EMOTIONS</p><h3>七情深度理解与拍摄指南</h3></div>
         <div id="emotionGuideGrid" class="emotion-guide-grid"></div>
@@ -97,7 +97,6 @@
       <div class="student-fields">
         <label><span>姓名或昵称 *</span><input id="studentName" name="name" required maxlength="50" autocomplete="name" placeholder="怎么称呼你"></label>
         <label><span>微信或手机号</span><input id="studentContact" name="contact" maxlength="100" autocomplete="tel" placeholder="选填，方便老师联系"></label>
-        <label><span>班级 / 渠道</span><input id="studentGroup" name="group" maxlength="80" placeholder="选填，例如：10 月训练营"></label>
         <label class="consent-field"><input id="studentConsent" type="checkbox" required><span>我同意保存本次答题内容与测评结果，用于结果查看和后续服务。</span></label>
       </div>
       <button class="button button-primary student-submit" type="submit">保存信息并开始 <span>→</span></button>
@@ -117,8 +116,8 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js?v=20261008-admin1"></script>
-  <script src="backend.js?v=20261008-admin1"></script>
-  <script src="app.js?v=20261008-admin1"></script>
+  <script src="config.js?v=20261008-admin2"></script>
+  <script src="backend.js?v=20261008-admin2"></script>
+  <script src="app.js?v=20261008-admin2"></script>
 </body>
 </html>

@@ -31,8 +31,8 @@ create table if not exists public.assessment_submissions (
   avoid_emotions text[] not null default '{}',
   appearance_style text,
   emotion_scores jsonb not null default '{}'::jsonb check (jsonb_typeof(emotion_scores) = 'object'),
-  raw_answers jsonb not null default '[]'::jsonb check (jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) = 33),
-  answers_detail jsonb not null default '[]'::jsonb check (jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) = 33)
+  raw_answers jsonb not null default '[]'::jsonb check (jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 33)),
+  answers_detail jsonb not null default '[]'::jsonb check (jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 33))
 );
 
 create index if not exists assessment_submissions_submitted_at_idx
@@ -101,8 +101,8 @@ with check (
   char_length(student_name) between 1 and 50
   and consent_at is not null
   and jsonb_typeof(emotion_scores) = 'object'
-  and jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) = 33
-  and jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) = 33
+  and jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 33)
+  and jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 33)
 );
 
 drop policy if exists "admins can read assessments" on public.assessment_submissions;
