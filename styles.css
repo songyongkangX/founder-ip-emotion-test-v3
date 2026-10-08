@@ -358,3 +358,24 @@ body.modal-open { overflow: hidden; }
   .resume-dialog h2 { font-size: 24px; }
   .resume-actions { grid-template-columns: 1fr; }
 }
+
+/* Learner identity and cloud-save states. */
+.result-sync-status { display: inline-flex; align-items: center; gap: 6px; min-height: 18px; margin-top: 9px; color: var(--muted); font-size: 10px; }
+.result-sync-status:before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #b7afc1; }
+.result-sync-status.is-saving:before { background: #d9a31b; box-shadow: 0 0 0 4px #f6e8b7; }
+.result-sync-status.is-saved:before { background: #398d70; box-shadow: 0 0 0 4px #ccecdf; }
+.result-sync-status.is-error:before { background: #c14a6d; box-shadow: 0 0 0 4px #f6d4df; }
+.student-dialog { text-align: left; }
+.student-dialog > .resume-mark, .student-dialog > .eyebrow, .student-dialog > h2, .student-dialog > p, .student-dialog > small { text-align: center; }
+.student-fields { display: grid; gap: 12px; margin-top: 24px; }
+.student-fields label > span { display: block; margin-bottom: 6px; color: #625a6b; font-size: 10px; font-weight: 700; }
+.student-fields input[type='text'], .student-fields input[type='tel'], .student-fields input:not([type]) { width: 100%; padding: 13px 14px; color: var(--ink); background: #f7f3fb; border: 1px solid var(--line); border-radius: 11px; outline: none; font: 13px var(--sans); }
+.student-fields input:focus { border-color: var(--violet); box-shadow: 0 0 0 3px #6d43d917; }
+.consent-field { display: grid; grid-template-columns: 18px 1fr; align-items: start; gap: 8px; padding: 11px 12px; background: #f2edf8; border-radius: 11px; }
+.consent-field input { width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--violet); }
+.consent-field > span { margin: 0 !important; font-size: 10px !important; font-weight: 500 !important; line-height: 1.6; }
+.student-submit { width: 100%; margin-top: 16px; }
+@media (max-width: 520px) {
+  .student-dialog { padding: 29px 18px 22px; }
+  .student-fields { margin-top: 19px; }
+}

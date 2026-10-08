@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>高质感IP情绪表达定位测评</title>
-  <link rel="stylesheet" href="styles.css?v=20261002-mbti-before-wuxing">
+  <link rel="stylesheet" href="styles.css?v=20261008-admin1">
 </head>
 <body>
   <main class="app-shell">
@@ -35,7 +35,7 @@
     </section>
 
     <section id="resultView" class="view result-view hidden">
-      <div class="result-heading"><div><p class="eyebrow">YOUR EMOTIONAL FORMULA</p><h2>这就是你的创始人信号</h2><p>把真实的你，变成用户能持续感受到的内容气质。</p></div><div class="result-actions"><button id="saveImageButton" class="button button-primary">保存图片</button><button id="restartButton" class="button button-ghost">重新测评</button></div></div>
+      <div class="result-heading"><div><p class="eyebrow">YOUR EMOTIONAL FORMULA</p><h2>这就是你的创始人信号</h2><p>把真实的你，变成用户能持续感受到的内容气质。</p><small id="resultSyncStatus" class="result-sync-status"></small></div><div class="result-actions"><button id="saveImageButton" class="button button-primary">保存图片</button><button id="restartButton" class="button button-ghost">重新测评</button></div></div>
       <div id="dominantResult" class="dominant-result">
         <div class="dominant-orb"><span id="dominantEmotion">怒</span><small>主情绪</small></div>
         <div class="dominant-copy"><p class="eyebrow">YOUR DOMINANT SIGNAL</p><h3><strong id="dominantType">立场型</strong>人格</h3><p id="dominantSummary">你最适合用清晰的立场和边界，让用户迅速记住你。</p><div class="dominant-meta"><span id="dominantScore">得分 0</span><span id="dominantPurpose">建立人设、替用户说话</span></div></div>
@@ -87,6 +87,23 @@
   </main>
   <footer><span>创始人 IP 情绪风格测评</span><span>Make your signal unmistakable.</span></footer>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="studentModal" class="resume-modal hidden" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
+    <form id="studentForm" class="resume-dialog student-dialog">
+      <button id="studentCloseButton" class="resume-close" type="button" aria-label="关闭">×</button>
+      <span class="resume-mark">✦</span>
+      <p class="eyebrow">BEFORE WE START</p>
+      <h2 id="studentModalTitle">先认识一下你</h2>
+      <p>用于保存并找回你的测评结果，老师可以在后台查看和跟进。</p>
+      <div class="student-fields">
+        <label><span>姓名或昵称 *</span><input id="studentName" name="name" required maxlength="50" autocomplete="name" placeholder="怎么称呼你"></label>
+        <label><span>微信或手机号</span><input id="studentContact" name="contact" maxlength="100" autocomplete="tel" placeholder="选填，方便老师联系"></label>
+        <label><span>班级 / 渠道</span><input id="studentGroup" name="group" maxlength="80" placeholder="选填，例如：10 月训练营"></label>
+        <label class="consent-field"><input id="studentConsent" type="checkbox" required><span>我同意保存本次答题内容与测评结果，用于结果查看和后续服务。</span></label>
+      </div>
+      <button class="button button-primary student-submit" type="submit">保存信息并开始 <span>→</span></button>
+      <small>仅收集完成测评所需的信息。</small>
+    </form>
+  </div>
   <div id="resumeModal" class="resume-modal hidden" role="dialog" aria-modal="true" aria-labelledby="resumeTitle">
     <div class="resume-dialog">
       <button id="resumeCloseButton" class="resume-close" type="button" aria-label="关闭">×</button>
@@ -95,10 +112,13 @@
       <h2 id="resumeTitle">继续上次的测评吗？</h2>
       <p id="resumeDescription">你的答题进度已保存在当前设备。</p>
       <div class="resume-actions"><button id="resumeContinueButton" class="button button-primary">接着答题</button><button id="resumeRestartButton" class="button button-ghost">重新开始</button></div>
-      <small>数据仅保存在当前浏览器，不会上传。</small>
+      <small>答题进度保存在当前浏览器；完成后，测评结果会安全提交给老师。</small>
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="app.js?v=20261002-mbti-before-wuxing"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js?v=20261008-admin1"></script>
+  <script src="backend.js?v=20261008-admin1"></script>
+  <script src="app.js?v=20261008-admin1"></script>
 </body>
 </html>

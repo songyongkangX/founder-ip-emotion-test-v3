@@ -136,8 +136,11 @@ const questions = [...baseQuestions.slice(0, 4), ...profileQuestions, ...baseQue
 let current = 0;
 let answers = Array.from({ length: questions.length }, () => []);
 let mbtiType = '未完成';
-const CACHE_KEY = 'founder-emotion-assessment-v4';
-const CACHE_VERSION = 4;
+let studentProfile = { name: '', contact: '', groupName: '', consentAt: '' };
+let submissionId = null;
+let submissionState = 'idle';
+const CACHE_KEY = 'founder-emotion-assessment-v5';
+const CACHE_VERSION = 5;
 const scores = () => Object.fromEntries(Object.keys(emotions).map(key => [key, 0]));
 const $ = id => document.getElementById(id);
 const scoreFromText = text => { const result = {}; [...text.matchAll(/([怒喜哀惧爱恶欲])\+(\d)/g)].forEach(match => { result[match[1]] = Number(match[2]); }); return result; };
@@ -156,7 +159,7 @@ function readCache() {
 }
 function saveCache(view = 'quiz') {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ version: CACHE_VERSION, questionCount: questions.length, current, answers, view, updatedAt: Date.now() }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ version: CACHE_VERSION, questionCount: questions.length, current, answers, view, studentProfile, submissionId, submissionState, updatedAt: Date.now() }));
   } catch (error) {
     console.warn('本地进度保存失败', error);
   }
@@ -166,6 +169,8 @@ function startFresh() {
   clearCache();
   current = 0;
   answers = Array.from({ length: questions.length }, () => []);
+  submissionId = window.AssessmentBackend && window.AssessmentBackend.configured && studentProfile.name ? crypto.randomUUID() : null;
+  submissionState = 'idle';
   show('quizView');
   $('headerStatus').textContent = '正在测评 · 自动保存';
   renderQuestion();
@@ -181,16 +186,30 @@ function openResumeModal(data) {
   document.body.classList.add('modal-open');
 }
 function closeResumeModal() { $('resumeModal').classList.add('hidden'); document.body.classList.remove('modal-open'); }
+function openStudentModal() {
+  $('studentName').value = studentProfile.name || '';
+  $('studentContact').value = studentProfile.contact || '';
+  $('studentGroup').value = studentProfile.groupName || '';
+  $('studentConsent').checked = Boolean(studentProfile.consentAt);
+  $('studentModal').classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  queueMicrotask(() => $('studentName').focus());
+}
+function closeStudentModal() { $('studentModal').classList.add('hidden'); document.body.classList.remove('modal-open'); }
 function resumeFromCache() {
   const data = readCache();
   if (!data) { closeResumeModal(); startFresh(); return; }
   answers = data.answers.map(selection => Array.isArray(selection) ? selection : []);
   current = Math.max(0, Math.min(Number(data.current) || 0, questions.length - 1));
+  studentProfile = data.studentProfile && typeof data.studentProfile === 'object' ? data.studentProfile : studentProfile;
+  submissionId = typeof data.submissionId === 'string' ? data.submissionId : null;
+  submissionState = ['saved', 'error'].includes(data.submissionState) ? data.submissionState : 'idle';
   closeResumeModal();
   if (data.view === 'result') {
-    renderResults();
+    const summary = renderResults();
     show('resultView');
     $('headerStatus').textContent = '已恢复上次结果';
+    if (submissionState !== 'saved') submitAssessment(summary);
   } else {
     show('quizView');
     $('headerStatus').textContent = '正在测评 · 自动保存';
@@ -284,6 +303,60 @@ function renderAdvancedInsights(primary, support, ranked) {
   }).join('');
   queueMicrotask(() => document.querySelectorAll('.advice-item span').forEach(item => { item.textContent = item.textContent.replace(/，建议[^。]+。$/, '。'); }));
 }
+function updateSyncStatus(state, message) {
+  const status = $('resultSyncStatus');
+  status.className = 'result-sync-status' + (state ? ` is-${state}` : '');
+  status.textContent = message;
+}
+function buildSubmissionPayload(summary) {
+  const selectedAppearanceIndex = Number.isInteger(answers[20][0]) ? answers[20][0] : 0;
+  return {
+    id: submissionId || undefined,
+    student_name: studentProfile.name.trim(),
+    student_contact: studentProfile.contact.trim() || null,
+    group_name: studentProfile.groupName.trim() || null,
+    consent_at: studentProfile.consentAt,
+    test_version: (window.APP_CONFIG && window.APP_CONFIG.appVersion) || 'v3',
+    source_url: `${window.location.origin}${window.location.pathname}`,
+    mbti_type: mbtiType,
+    primary_emotion: summary.primary,
+    support_emotions: summary.support,
+    avoid_emotions: summary.avoid,
+    appearance_style: (appearanceStyles[selectedAppearanceIndex] || appearanceStyles[0]).name,
+    emotion_scores: Object.fromEntries(summary.ranked),
+    raw_answers: answers,
+    answers_detail: questions.map((question, index) => ({
+      number: index + 1,
+      section: question[0],
+      question: question[1],
+      answers: answers[index].map(optionIndex => question[2][optionIndex][0])
+    }))
+  };
+}
+async function submitAssessment(summary) {
+  if (!studentProfile.name || submissionState === 'saved' || submissionState === 'saving') return;
+  if (!window.AssessmentBackend || !window.AssessmentBackend.configured) {
+    updateSyncStatus('', '结果已保存在本设备');
+    return;
+  }
+  submissionId = submissionId || crypto.randomUUID();
+  submissionState = 'saving';
+  saveCache('result');
+  updateSyncStatus('saving', '正在安全保存测评结果…');
+  try {
+    const result = await window.AssessmentBackend.saveSubmission(buildSubmissionPayload(summary));
+    if (!result.saved) throw new Error('结果保存服务尚未配置');
+    submissionId = result.id;
+    submissionState = 'saved';
+    saveCache('result');
+    updateSyncStatus('saved', '测评结果已安全提交');
+  } catch (error) {
+    submissionState = 'error';
+    saveCache('result');
+    updateSyncStatus('error', '云端保存失败，结果仍保留在本设备');
+    console.error('测评结果提交失败', error);
+  }
+}
 function renderResults() {
   const ranked = calculate(); const primary = ranked[0][0]; const support = ranked.slice(1, 3).map(item => item[0]); const avoid = ranked.slice(-2).map(item => item[0]); const max = ranked[0][1] || 1;
   renderAdvancedInsights(primary, support, ranked);
@@ -295,6 +368,10 @@ function renderResults() {
   $('contentAdvice').innerHTML = [primary, ...support].map((emotion, index) => `<div class="advice-item"><strong>${[60, 25, 15][index]}% ${emotion} · ${emotions[emotion].type}</strong><span>${emotions[emotion].advice}。${emotions[emotion].purpose}，建议${emotions[emotion].frequency}。</span></div>`).join(''); $('avoidAdvice').textContent = `${avoid.join('、')}：分数较低，暂时不要把它们当作主要表达。你的内容更适合从「${emotions[primary].type}」出发，保持真实比刻意补齐所有情绪更重要。`; $('signalCopy').textContent = ranked[0][1] - ranked[1][1] >= 3 ? '情绪信号清晰' : '情绪组合丰富'; $('emotionTags').innerHTML = ranked.slice(0, 4).map(([emotion, score], index) => `<span class="emotion-tag tag-${index}">${emotion} · ${emotions[emotion].type}<b>${score}</b></span>`).join('');
   $('headerStatus').textContent = '测评已完成 · 结果已保存';
   saveCache('result');
+  if (submissionState === 'saved') updateSyncStatus('saved', '测评结果已安全提交');
+  else if (window.AssessmentBackend && window.AssessmentBackend.configured) updateSyncStatus('', '即将保存本次测评结果');
+  else updateSyncStatus('', '结果已保存在本设备');
+  return { ranked, primary, support, avoid };
 }
 function answerText(index) { const selection = answers[index]; return selection.length ? selection.map(answer => questions[index][2][answer][0]).join('、') : '未填写'; }
 function ensureResultLayout() { const description = document.querySelector('.intro-description'); const note = document.querySelector('.micro-note'); if (description) description.textContent = '用情绪表达做爆款，用信任表达做成交。10 分钟找到属于你的情绪配方、内容比例和可直接执行的视频方向。'; if (note) note.textContent = `${questions.length} 题 · 约 10 分钟 · 含 2 题可选`; const homeShare = $('shareTestButton'); const resultShare = $('shareResultButton'); const shareModal = $('shareModal'); if (homeShare) homeShare.remove(); if (resultShare) resultShare.remove(); if (shareModal) shareModal.remove(); const saveButton = $('saveImageButton'); const resultActions = document.querySelector('.result-actions'); if (saveButton && resultActions && !resultActions.contains(saveButton)) resultActions.prepend(saveButton); if (!$('dominantResult') && $('resultCard')) $('resultCard').insertAdjacentHTML('beforebegin', '<div id="dominantResult" class="dominant-result"><div class="dominant-orb"><span id="dominantEmotion">怒</span><small>主情绪</small></div><div class="dominant-copy"><p class="eyebrow">YOUR DOMINANT SIGNAL</p><h3><strong id="dominantType">立场型</strong>人格</h3><p id="dominantSummary">你最适合用清晰的立场和边界，让用户迅速记住你。</p><div class="dominant-meta"><span id="dominantScore">得分 0</span><span id="dominantFrequency">每周 1–2 条</span></div></div><div class="dominant-badge">TOP<br><strong>01</strong></div></div>'); }
@@ -420,12 +497,37 @@ async function downloadResult() {
 }
 
 ensureResultLayout();
-$('startButton').addEventListener('click', () => { const cached = readCache(); if (cached) openResumeModal(cached); else startFresh(); });
+$('startButton').addEventListener('click', () => {
+  const cached = readCache();
+  if (cached) openResumeModal(cached);
+  else if (window.AssessmentBackend && window.AssessmentBackend.configured) openStudentModal();
+  else startFresh();
+});
 $('prevButton').addEventListener('click', () => { if (current > 0) { current--; saveCache('quiz'); renderQuestion(); } });
-$('nextButton').addEventListener('click', () => { if (current < questions.length - 1) { current++; saveCache('quiz'); renderQuestion(); } else { renderResults(); show('resultView'); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
-$('restartButton').addEventListener('click', () => { clearCache(); show('introView'); $('headerStatus').textContent = '准备开始'; window.history.replaceState({}, '', window.location.pathname); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+$('nextButton').addEventListener('click', () => { if (current < questions.length - 1) { current++; saveCache('quiz'); renderQuestion(); } else { const summary = renderResults(); show('resultView'); submitAssessment(summary); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
+$('restartButton').addEventListener('click', () => { clearCache(); studentProfile = { name: '', contact: '', groupName: '', consentAt: '' }; submissionId = null; submissionState = 'idle'; show('introView'); $('headerStatus').textContent = '准备开始'; window.history.replaceState({}, '', window.location.pathname); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+$('studentForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const name = $('studentName').value.trim();
+  if (!name || !$('studentConsent').checked) return;
+  studentProfile = {
+    name,
+    contact: $('studentContact').value.trim(),
+    groupName: $('studentGroup').value.trim(),
+    consentAt: new Date().toISOString()
+  };
+  closeStudentModal();
+  startFresh();
+});
+$('studentCloseButton').addEventListener('click', closeStudentModal);
 $('resumeContinueButton').addEventListener('click', resumeFromCache);
-$('resumeRestartButton').addEventListener('click', () => { closeResumeModal(); startFresh(); });
+$('resumeRestartButton').addEventListener('click', () => {
+  closeResumeModal();
+  clearCache();
+  studentProfile = { name: '', contact: '', groupName: '', consentAt: '' };
+  if (window.AssessmentBackend && window.AssessmentBackend.configured) openStudentModal();
+  else startFresh();
+});
 $('resumeCloseButton').addEventListener('click', closeResumeModal);
 $('saveImageButton').addEventListener('click', downloadResult);
 const openedSharedResult = loadSharedResult();

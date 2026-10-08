@@ -1,0 +1,8 @@
+project_id = "founder-ip-emotion-test-v3"
+
+[functions.bootstrap-admin]
+verify_jwt = false
+
+[functions.invite-admin]
+verify_jwt = false
+
