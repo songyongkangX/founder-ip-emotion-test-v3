@@ -170,9 +170,12 @@
     const form = event.currentTarget;
     setBusy(form, true);
     setMessage('authMessage', '正在登录…');
-    const password = $('loginPassword').value.trim();
+    const password = $('loginPassword').value.trim().replace(/[０-９]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0xFEE0));
     const { error } = await client.auth.signInWithPassword({ email: sharedAdminEmail, password });
-    if (error) setMessage('authMessage', '密码不正确，请重新输入。', true);
+    if (error) {
+      const invalidPassword = error.code === 'invalid_credentials' || /invalid login credentials/i.test(error.message || '');
+      setMessage('authMessage', invalidPassword ? '密码不正确，请重新输入。' : '登录服务暂时没有响应，请刷新页面后重试。', true);
+    }
     setBusy(form, false);
   });
 
