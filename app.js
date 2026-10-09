@@ -260,6 +260,7 @@ function renderQuestion() {
   const isSingle = mode === 'single' || mode === 'income-intake';
   $('questionTitle').textContent = title; $('currentNumber').textContent = String(current + 1).padStart(2, '0'); $('progressBar').style.width = `${((current + 1) / questions.length) * 100}%`; $('skipHint').textContent = isSingle ? '单选题 · 请选择最符合的一项' : `多选题 · 最多选择 ${maxSelection} 项`;
   if (mode === 'account-intake') {
+    $('nextButton').classList.remove('hidden');
     $('questionMode').textContent = '资料填写 · 不参与测评计分';
     $('skipHint').textContent = '选择“还没有”可直接进入下一题';
     renderAccountIntake();
@@ -268,11 +269,38 @@ function renderQuestion() {
     $('nextButton').innerHTML = '下一题 <span>→</span>';
     return;
   }
+  $('nextButton').classList.add('hidden');
   const modeLabel = isSingle ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
   $('questionMode').textContent = optional ? '可选 · ' + modeLabel : modeLabel;
   if (optional) $('skipHint').textContent = '可选题 · 不填写也可以继续';
   $('options').innerHTML = options.map((option, index) => `<div class="option ${answers[current].includes(index) ? 'selected' : ''}" data-index="${index}"><span class="option-letter">${answers[current].includes(index) ? '✓' : String.fromCharCode(65 + index)}</span><div class="option-copy"><strong>${option[0]}</strong></div></div>`).join('');
-  document.querySelectorAll('.option').forEach(option => option.addEventListener('click', () => { const index = Number(option.dataset.index); const selected = answers[current]; if (selected.includes(index)) answers[current] = selected.filter(item => item !== index); else if (isSingle) answers[current] = [index]; else if (selected.length < maxSelection) answers[current] = [...selected, index]; else { showToast(`本题最多选择 ${maxSelection} 项`); return; } if (mode === 'income-intake') intakeData.income = answers[current].length ? options[answers[current][0]][0] : ''; saveCache('quiz'); renderQuestion(); }));
+  document.querySelectorAll('.option').forEach(option => option.addEventListener('click', () => {
+    const questionIndex = current;
+    const index = Number(option.dataset.index);
+    const selected = answers[current];
+    if (selected.includes(index)) answers[current] = selected.filter(item => item !== index);
+    else if (isSingle) answers[current] = [index];
+    else if (selected.length < maxSelection) answers[current] = [...selected, index];
+    else { showToast(`本题最多选择 ${maxSelection} 项`); return; }
+    if (mode === 'income-intake') intakeData.income = answers[current].length ? options[answers[current][0]][0] : '';
+    saveCache('quiz');
+    renderQuestion();
+    if (!answers[questionIndex].length) return;
+    window.setTimeout(() => {
+      if (current !== questionIndex) return;
+      if (current < questions.length - 1) {
+        current++;
+        saveCache('quiz');
+        renderQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const summary = renderResults();
+        show('resultView');
+        submitAssessment(summary);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 220);
+  }));
   $('prevButton').disabled = current === 0; $('nextButton').disabled = !optional && answers[current].length === 0; $('nextButton').innerHTML = current === questions.length - 1 ? '查看结果 <span>↗</span>' : optional ? '下一题（可跳过） <span>→</span>' : '下一题 <span>→</span>';
 }
 function calculate() {
