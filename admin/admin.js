@@ -4,7 +4,7 @@
   const configured = Boolean(config.supabaseUrl && publicKey && window.supabase);
   const client = configured ? window.supabase.createClient(config.supabaseUrl, publicKey) : null;
   const state = { submissions: [], filtered: [], selectedId: null, admin: null };
-  const phoneToLoginEmail = (phone) => `admin-${phone}@founder-ip.local`;
+  const sharedAdminEmail = 'dashboard-access@founder-ip.local';
 
   const $ = (id) => document.getElementById(id);
   const panels = ['setupPanel', 'authPanel', 'dashboard'];
@@ -168,12 +168,10 @@
 
   $('loginForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    const phone = $('loginPhone').value.trim();
-    if (!/^1\d{10}$/.test(phone)) return setMessage('authMessage', '请输入正确的 11 位手机号。', true);
     setBusy(event.currentTarget, true);
     setMessage('authMessage', '正在登录…');
-    const { error } = await client.auth.signInWithPassword({ email: phoneToLoginEmail(phone), password: $('loginPassword').value });
-    if (error) setMessage('authMessage', '该手机号尚未开通管理员权限，或密码不正确。', true);
+    const { error } = await client.auth.signInWithPassword({ email: sharedAdminEmail, password: $('loginPassword').value });
+    if (error) setMessage('authMessage', '密码不正确，请重新输入。', true);
     setBusy(event.currentTarget, false);
   });
 
