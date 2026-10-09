@@ -101,6 +101,7 @@ const profileQuestions = [
   ['用户画像', '你的用户收入水平主要是？', [['月入5000以下', '爱+2，哀+1，惧+1'], ['月入5000–2万', '喜+1，欲+1，爱+1'], ['月入2万–10万', '恶+1，怒+1，喜+1'], ['月入10万以上', '恶+2，怒+2']], 'multi', 2]
 ];
 const intakeQuestions = [
+  ['资料补充', '你的年收入？（万元）', [['0–10', ''], ['10–30', ''], ['30–50', ''], ['50–100', ''], ['100–200', ''], ['200–500', ''], ['500以上', '']], 'income-intake', 1],
   ['资料补充', '你有拍过短视频吗？', [['已填写', '']], 'account-intake', 1]
 ];
 const scenarioQuestions = [
@@ -121,8 +122,8 @@ let studentProfile = { name: '', contact: '', consentAt: '' };
 let intakeData = { income: '', hasAccount: '', accountName: '', followers: '', bottlenecks: [], videoCount: '', reasons: [], hasLive: '', liveIssues: '' };
 let submissionId = null;
 let submissionState = 'idle';
-const CACHE_KEY = 'founder-emotion-assessment-v8';
-const CACHE_VERSION = 8;
+const CACHE_KEY = 'founder-emotion-assessment-v9';
+const CACHE_VERSION = 9;
 const scores = () => Object.fromEntries(Object.keys(emotions).map(key => [key, 0]));
 const $ = id => document.getElementById(id);
 const scoreFromText = text => { const result = {}; [...text.matchAll(/([怒喜哀惧爱恶欲])\+(\d)/g)].forEach(match => { result[match[1]] = Number(match[2]); }); return result; };
@@ -256,7 +257,8 @@ function renderQuestion() {
     '八字五行 · 可选': '第七部分 · 八字五行（可选）'
   }[section] || section;
   $('sectionLabel').textContent = sectionLabel;
-  $('questionTitle').textContent = title; $('currentNumber').textContent = String(current + 1).padStart(2, '0'); $('progressBar').style.width = `${((current + 1) / questions.length) * 100}%`; $('skipHint').textContent = mode === 'single' ? '单选题 · 请选择最符合的一项' : `多选题 · 最多选择 ${maxSelection} 项`;
+  const isSingle = mode === 'single' || mode === 'income-intake';
+  $('questionTitle').textContent = title; $('currentNumber').textContent = String(current + 1).padStart(2, '0'); $('progressBar').style.width = `${((current + 1) / questions.length) * 100}%`; $('skipHint').textContent = isSingle ? '单选题 · 请选择最符合的一项' : `多选题 · 最多选择 ${maxSelection} 项`;
   if (mode === 'account-intake') {
     $('questionMode').textContent = '资料填写 · 不参与测评计分';
     $('skipHint').textContent = '选择“还没有”可直接进入下一题';
@@ -266,12 +268,11 @@ function renderQuestion() {
     $('nextButton').innerHTML = '下一题 <span>→</span>';
     return;
   }
-  const modeLabel = mode === 'single' ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
+  const modeLabel = isSingle ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
   $('questionMode').textContent = optional ? '可选 · ' + modeLabel : modeLabel;
   if (optional) $('skipHint').textContent = '可选题 · 不填写也可以继续';
-  $('options').innerHTML = options.map((option, index) => `<div class="option ${answers[current].includes(index) ? 'selected' : ''}" data-index="${index}"><span class="option-letter">${answers[current].includes(index) ? '✓' : String.fromCharCode(65 + index)}</span><div class="option-copy"><strong>${option[0]}</strong></div></div>`).join('') + (title === '你的用户收入水平主要是？' ? `<label class="intake-field annual-income-field"><span>你的年收入</span><input id="incomeInput" type="text" maxlength="40" value="${escapeAttribute(intakeData.income)}" placeholder="例如：20w / 暂无稳定收入"></label>` : '');
-  $('incomeInput')?.addEventListener('input', event => { intakeData.income = event.target.value; saveCache('quiz'); });
-  document.querySelectorAll('.option').forEach(option => option.addEventListener('click', () => { const index = Number(option.dataset.index); const selected = answers[current]; if (selected.includes(index)) answers[current] = selected.filter(item => item !== index); else if (mode === 'single') answers[current] = [index]; else if (selected.length < maxSelection) answers[current] = [...selected, index]; else { showToast(`本题最多选择 ${maxSelection} 项`); return; } saveCache('quiz'); renderQuestion(); }));
+  $('options').innerHTML = options.map((option, index) => `<div class="option ${answers[current].includes(index) ? 'selected' : ''}" data-index="${index}"><span class="option-letter">${answers[current].includes(index) ? '✓' : String.fromCharCode(65 + index)}</span><div class="option-copy"><strong>${option[0]}</strong></div></div>`).join('');
+  document.querySelectorAll('.option').forEach(option => option.addEventListener('click', () => { const index = Number(option.dataset.index); const selected = answers[current]; if (selected.includes(index)) answers[current] = selected.filter(item => item !== index); else if (isSingle) answers[current] = [index]; else if (selected.length < maxSelection) answers[current] = [...selected, index]; else { showToast(`本题最多选择 ${maxSelection} 项`); return; } if (mode === 'income-intake') intakeData.income = answers[current].length ? options[answers[current][0]][0] : ''; saveCache('quiz'); renderQuestion(); }));
   $('prevButton').disabled = current === 0; $('nextButton').disabled = !optional && answers[current].length === 0; $('nextButton').innerHTML = current === questions.length - 1 ? '查看结果 <span>↗</span>' : optional ? '下一题（可跳过） <span>→</span>' : '下一题 <span>→</span>';
 }
 function calculate() {
@@ -343,6 +344,7 @@ function updateSyncStatus(state, message) {
 }
 function buildSubmissionPayload(summary) {
   const selectedAppearanceIndex = Number.isInteger(answers[appearanceQuestionIndex]?.[0]) ? answers[appearanceQuestionIndex][0] : 0;
+  const storedQuestionIndexes = questions.map((question, index) => question[3] === 'income-intake' ? -1 : index).filter(index => index >= 0);
   return {
     id: submissionId || undefined,
     student_name: studentProfile.name.trim(),
@@ -365,13 +367,15 @@ function buildSubmissionPayload(summary) {
       } : {})
     },
     emotion_scores: Object.fromEntries(summary.ranked),
-    raw_answers: answers,
-    answers_detail: questions.map((question, index) => ({
-      number: index + 1,
+    raw_answers: storedQuestionIndexes.map(index => answers[index]),
+    answers_detail: storedQuestionIndexes.map((index, storedIndex) => {
+      const question = questions[index];
+      return {
+      number: storedIndex + 1,
       section: question[0],
       question: question[1],
       answers: question[3] === 'account-intake' ? [intakeData.hasAccount === 'yes' ? '拍过短视频，详情见资料档案' : '还没有拍过短视频'] : answers[index].map(optionIndex => question[2][optionIndex][0])
-    }))
+    }; })
   };
 }
 async function submitAssessment(summary) {
@@ -590,7 +594,7 @@ function refreshIntroCopy() {
     legacyFrequency.textContent = '';
   }
   if (description) description.innerHTML = '用情绪表达做爆款，让更多人看到你<br>用信任表达做成交，让更多人选择你<br>通过七情情绪、用户画像和表达习惯<br>找到最适合你的短视频表达风格与拍摄方向';
-  if (note) note.textContent = '29 道测评题 · 1 步资料补充 · 约 8 分钟';
+  if (note) note.textContent = '29 道测评题 · 2 步资料补充 · 约 8 分钟';
 }
 
 refreshIntroCopy();
