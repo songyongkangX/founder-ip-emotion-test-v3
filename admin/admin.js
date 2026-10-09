@@ -57,7 +57,6 @@
       return;
     }
     state.admin = profile;
-    $('adminIdentity').textContent = profile.display_name || profile.email || session.user.email || '';
     setPanel('dashboard');
     await loadSubmissions();
   }
@@ -168,16 +167,19 @@
 
   $('loginForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    setBusy(event.currentTarget, true);
+    const form = event.currentTarget;
+    setBusy(form, true);
     setMessage('authMessage', '正在登录…');
-    const { error } = await client.auth.signInWithPassword({ email: sharedAdminEmail, password: $('loginPassword').value });
+    const password = $('loginPassword').value.trim();
+    const { error } = await client.auth.signInWithPassword({ email: sharedAdminEmail, password });
     if (error) setMessage('authMessage', '密码不正确，请重新输入。', true);
-    setBusy(event.currentTarget, false);
+    setBusy(form, false);
   });
 
   $('inviteForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    setBusy(event.currentTarget, true);
+    const form = event.currentTarget;
+    setBusy(form, true);
     const phone = $('invitePhone').value.trim();
     if (!/^1\d{10}$/.test(phone)) { setMessage('inviteMessage', '请输入正确的 11 位手机号。', true); return; }
     setMessage('inviteMessage', '正在开通…');
@@ -185,9 +187,9 @@
     if (error || data?.error) setMessage('inviteMessage', `邀请失败：${data?.error || error.message}`, true);
     else {
       setMessage('inviteMessage', '管理员已开通，可使用手机号和统一密码登录。');
-      event.currentTarget.reset();
+      form.reset();
     }
-    setBusy(event.currentTarget, false);
+    setBusy(form, false);
   });
 
   $('deleteSubmissionButton').addEventListener('click', async () => {
