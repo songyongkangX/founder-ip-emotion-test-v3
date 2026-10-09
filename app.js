@@ -269,7 +269,7 @@ function renderQuestion() {
     $('nextButton').innerHTML = '下一题 <span>→</span>';
     return;
   }
-  $('nextButton').classList.add('hidden');
+  $('nextButton').classList.toggle('hidden', isSingle);
   const modeLabel = isSingle ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
   $('questionMode').textContent = optional ? '可选 · ' + modeLabel : modeLabel;
   if (optional) $('skipHint').textContent = '可选题 · 不填写也可以继续';
@@ -285,7 +285,7 @@ function renderQuestion() {
     if (mode === 'income-intake') intakeData.income = answers[current].length ? options[answers[current][0]][0] : '';
     saveCache('quiz');
     renderQuestion();
-    if (!answers[questionIndex].length) return;
+    if (!isSingle || !answers[questionIndex].length) return;
     window.setTimeout(() => {
       if (current !== questionIndex) return;
       if (current < questions.length - 1) {
