@@ -147,6 +147,11 @@
     const avoid = Array.isArray(item.avoid_emotions) ? item.avoid_emotions.join('、') : '—';
     const scoreEntries = Object.entries(item.emotion_scores || {}).sort((a, b) => Number(b[1]) - Number(a[1]));
     const answers = Array.isArray(item.answers_detail) ? item.answers_detail : [];
+    const intake = item.intake_profile && typeof item.intake_profile === 'object' ? item.intake_profile : {};
+    const intakeDetails = intake.annual_income ? `<section class="detail-section"><h3>账号与经营资料</h3><div class="detail-summary">
+      ${summaryItem('本人年收入', intake.annual_income || '—')}${summaryItem('是否拍过短视频', intake.has_account ? '拍过' : '还没有')}
+      ${intake.has_account ? summaryItem('账号名称', intake.account_name || '—') + summaryItem('粉丝数量', intake.followers ?? '—') + summaryItem('短视频数量', intake.video_count || '—') + summaryItem('是否直播过', intake.has_live ? '是' : '否') : ''}
+    </div>${intake.has_account ? `<div class="score-list"><span>账号卡点：${escapeHtml((intake.bottlenecks || []).join('、') || '—')}</span><span>拍摄原因：${escapeHtml((intake.reasons || []).join('、') || '—')}</span><span>想解决的问题：${escapeHtml(intake.live_issues || '—')}</span></div>` : ''}</section>` : '';
     $('detailContent').innerHTML = `
       <div class="detail-summary">
         ${summaryItem('联系方式', item.student_contact || '—')}
@@ -159,6 +164,7 @@
         ${summaryItem('外在风格', item.appearance_style || '—')}
         ${summaryItem('测评版本', item.test_version || '—')}
       </div>
+      ${intakeDetails}
       <section class="detail-section"><h3>情绪得分</h3><div class="score-list">${scoreEntries.map(([name, score]) => `<span>${escapeHtml(name)}：${escapeHtml(score)}</span>`).join('') || '<span>暂无</span>'}</div></section>
       <section class="detail-section"><h3>完整答题记录</h3><ol class="answer-list">${answers.map((answer, index) => `<li><strong>${index + 1}. ${escapeHtml(answer.question || '')}</strong><span>${escapeHtml(Array.isArray(answer.answers) ? answer.answers.join('、') : (answer.answer || answer.selected || '未作答'))}</span></li>`).join('') || '<li><span>暂无答题明细</span></li>'}</ol></section>`;
     $('detailDialog').showModal();

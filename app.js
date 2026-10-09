@@ -100,6 +100,9 @@ const profileQuestions = [
   ['用户画像', '你的用户职业主要是？', [['创业者 / 老板 / 企业主', '恶+2，怒+1，喜+1'], ['职场白领 / 上班族', '惧+1，喜+1，爱+1'], ['自由职业者 / 个体户', '喜+1，欲+1，怒+1'], ['宝妈 / 家庭主妇', '爱+2，哀+1，惧+1'], ['学生 / 刚毕业', '喜+2，欲+1，怒+1']], 'multi', 2],
   ['用户画像', '你的用户收入水平主要是？', [['月入5000以下', '爱+2，哀+1，惧+1'], ['月入5000–2万', '喜+1，欲+1，爱+1'], ['月入2万–10万', '恶+1，怒+1，喜+1'], ['月入10万以上', '恶+2，怒+2']], 'multi', 2]
 ];
+const intakeQuestions = [
+  ['资料补充', '你有拍过短视频吗？', [['已填写', '']], 'account-intake', 1]
+];
 const scenarioQuestions = [
   ['情景反应', '线下课定价9800，学员说“太贵了”，你会怎么回？', [['展示价值和学员案例', '喜+2，恶+1'], ['强调课程门槛和筛选标准', '恶+2，怒+1'], ['理解顾虑，分享自己的犹豫经历', '爱+2，哀+1'], ['强调现在不投资的机会成本', '惧+2']], 'single', 1],
   ['情景反应', '发现另一个IP明显借鉴你的课程大纲和文案，你会怎么做？', [['公开表达立场', '怒+2，恶+1'], ['继续做自己的事，用结果说话', '恶+1，喜+1'], ['内心难受但不想撕破脸', '哀+2，爱+1'], ['告诉团队和核心学员真相', '恶+1，怒+1']], 'single', 1],
@@ -108,17 +111,18 @@ const scenarioQuestions = [
   ['情景反应', '认识多年的朋友请你免费打广告，你会怎么回应？', [['时间有价，可以帮但不免费', '恶+2，怒+1'], ['这次免费，下次收费', '爱+1，恶+1'], ['直接拒绝免费推广', '恶+2'], ['为难但最后还是帮了', '爱+2']], 'single', 1],
   ['情景反应', '看到圈里有人用明显有问题的模式割韭菜，你会怎么做？', [['发视频公开批评', '怒+2'], ['在社群里提醒学员', '恶+1，爱+1'], ['专注做自己的事', '恶+1，喜+1'], ['心疼受害者但不知道该不该管', '哀+2，爱+1']], 'single', 1]
 ];
-const questions = [...baseQuestions.slice(0, 4), ...profileQuestions, ...baseQuestions.slice(4, 7), ...scenarioQuestions, ...baseQuestions.slice(7, 13), ...mbtiQuestions, ...baseQuestions.slice(13)];
+const questions = [...baseQuestions.slice(0, 4), ...profileQuestions, ...intakeQuestions, ...baseQuestions.slice(4, 7), ...scenarioQuestions, ...baseQuestions.slice(7, 13), ...mbtiQuestions, ...baseQuestions.slice(13)];
 const appearanceQuestionIndex = questions.findIndex(question => question[1].startsWith('不考虑职业'));
 
 let current = 0;
 let answers = Array.from({ length: questions.length }, () => []);
 let mbtiType = '未完成';
 let studentProfile = { name: '', contact: '', consentAt: '' };
+let intakeData = { income: '', hasAccount: '', accountName: '', followers: '', bottlenecks: [], videoCount: '', reasons: [], hasLive: '', liveIssues: '' };
 let submissionId = null;
 let submissionState = 'idle';
-const CACHE_KEY = 'founder-emotion-assessment-v6';
-const CACHE_VERSION = 6;
+const CACHE_KEY = 'founder-emotion-assessment-v8';
+const CACHE_VERSION = 8;
 const scores = () => Object.fromEntries(Object.keys(emotions).map(key => [key, 0]));
 const $ = id => document.getElementById(id);
 const scoreFromText = text => { const result = {}; [...text.matchAll(/([怒喜哀惧爱恶欲])\+(\d)/g)].forEach(match => { result[match[1]] = Number(match[2]); }); return result; };
@@ -137,7 +141,7 @@ function readCache() {
 }
 function saveCache(view = 'quiz') {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ version: CACHE_VERSION, questionCount: questions.length, current, answers, view, studentProfile, submissionId, submissionState, updatedAt: Date.now() }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ version: CACHE_VERSION, questionCount: questions.length, current, answers, view, studentProfile, intakeData, submissionId, submissionState, updatedAt: Date.now() }));
   } catch (error) {
     console.warn('本地进度保存失败', error);
   }
@@ -179,6 +183,7 @@ function resumeFromCache() {
   answers = data.answers.map(selection => Array.isArray(selection) ? selection : []);
   current = Math.max(0, Math.min(Number(data.current) || 0, questions.length - 1));
   studentProfile = data.studentProfile && typeof data.studentProfile === 'object' ? data.studentProfile : studentProfile;
+  intakeData = data.intakeData && typeof data.intakeData === 'object' ? { ...intakeData, ...data.intakeData } : intakeData;
   submissionId = typeof data.submissionId === 'string' ? data.submissionId : null;
   submissionState = ['saved', 'error'].includes(data.submissionState) ? data.submissionState : 'idle';
   closeResumeModal();
@@ -203,12 +208,47 @@ function closeShareModal() { $('shareModal').classList.add('hidden'); document.b
 async function copyShareUrl() { const url = $('shareUrlInput').value; try { await navigator.clipboard.writeText(url); } catch (error) { $('shareUrlInput').select(); document.execCommand('copy'); } showToast('测评网址已复制'); }
 function downloadQr() { const link = document.createElement('a'); link.download = '创始人IP情绪风格测评二维码.png'; link.href = $('shareQrImage').src; link.target = '_blank'; link.click(); }
 function loadSharedResult() { const encoded = new URLSearchParams(window.location.search).get('answers'); if (!encoded || !/^[0-9x]+(?:\.[0-9x]+)*$/.test(encoded)) return false; const tokens = encoded.includes('.') ? encoded.split('.') : [...encoded]; if (tokens.length !== questions.length) return false; if (tokens.some((token, index) => token !== 'x' && Number(token) > (1 << questions[index][2].length) - 1)) return false; answers = tokens.map((token, index) => { if (token === 'x') return []; const mask = Number(token); return Array.from({ length: questions[index][2].length }, (_, optionIndex) => optionIndex).filter(optionIndex => mask & (1 << optionIndex)); }); renderResults(); show('resultView'); $('headerStatus').textContent = '已打开分享结果'; return true; }
+const escapeAttribute = value => String(value || '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+const bottleneckOptions = ['恐播，看到镜头人就僵硬', '定位，不知道自己适合讲什么', '流量，不知道讲什么才有流量', '内容，不知道怎么用爆款框架拍爆款', '数据，数据差，不会有效复盘', '产品，不懂产品设计，产品链条不清晰', '变现，没有精准客户，也不知道转化流程', '转化，公域转私域的流程跑不通，转化率差', '缺老师，没有专业老师指导、没有进入核心圈子，自己做见效慢', '团队，没有团队或团队不出结果'];
+const reasonOptions = ['实体老板，想转型，寻求第二曲线', '目前获客太难，想增加一个获客渠道', '想创业，想做个人 IP 赚更多钱', '想做品牌影响力', '私域量太少，需要公域流量'];
+const intakeComplete = () => intakeData.hasAccount === 'no' || (intakeData.hasAccount === 'yes' && intakeData.accountName.trim() && intakeData.followers !== '' && intakeData.bottlenecks.length && intakeData.videoCount && intakeData.reasons.length && intakeData.hasLive && intakeData.liveIssues.trim());
+function syncIntakeAnswer(mode) {
+  answers[current] = intakeComplete(mode) ? [0] : [];
+  $('nextButton').disabled = !answers[current].length;
+  saveCache('quiz');
+}
+function renderAccountIntake() {
+  const choices = (items, selected, name, emphasize = false) => items.map(item => {
+    const [key, ...rest] = item.split('，');
+    const content = emphasize ? `<b class="check-key">${key}</b>${rest.length ? `<span>，${rest.join('，')}</span>` : ''}` : item;
+    return `<label class="check-row"><input type="checkbox" name="${name}" value="${escapeAttribute(item)}" ${selected.includes(item) ? 'checked' : ''}><span>${content}</span></label>`;
+  }).join('');
+  $('options').innerHTML = `<div class="intake-card account-intake">
+    <div class="binary-choice"><label><input type="radio" name="hasAccount" value="no" ${intakeData.hasAccount === 'no' ? 'checked' : ''}><span>还没有</span></label><label><input type="radio" name="hasAccount" value="yes" ${intakeData.hasAccount === 'yes' ? 'checked' : ''}><span>拍过</span></label></div>
+    <div id="accountDetails" class="account-details ${intakeData.hasAccount === 'yes' ? '' : 'hidden'}">
+      <div class="intake-two"><label class="intake-field"><span>账号名称</span><input id="accountNameInput" maxlength="80" value="${escapeAttribute(intakeData.accountName)}" placeholder="填写账号名称"></label><label class="intake-field"><span>粉丝数量</span><input id="followersInput" type="text" maxlength="30" value="${escapeAttribute(intakeData.followers)}" placeholder="例如：10w"></label></div>
+      <details class="multi-dropdown"><summary>目前账号的卡点是什么？<b id="bottleneckCount">${intakeData.bottlenecks.length ? `已选 ${intakeData.bottlenecks.length} 项` : '可多选'}</b></summary><div class="dropdown-options">${choices(bottleneckOptions, intakeData.bottlenecks, 'bottleneck', true)}</div></details>
+      <label class="intake-field"><span>拍过多少条短视频？</span><select id="videoCountSelect"><option value="">请选择</option>${['还没拍过', '1–10 条', '11–30 条', '31–100 条', '100 条以上'].map(item => `<option ${intakeData.videoCount === item ? 'selected' : ''}>${item}</option>`).join('')}</select></label>
+      <details class="multi-dropdown"><summary>你为什么选择拍短视频？<b id="reasonCount">${intakeData.reasons.length ? `已选 ${intakeData.reasons.length} 项` : '可多选'}</b></summary><div class="dropdown-options">${choices(reasonOptions, intakeData.reasons, 'reason')}</div></details>
+      <div class="intake-field"><span>你有没有直播过？</span><div class="binary-choice compact"><label><input type="radio" name="hasLive" value="yes" ${intakeData.hasLive === 'yes' ? 'checked' : ''}><span>直播过</span></label><label><input type="radio" name="hasLive" value="no" ${intakeData.hasLive === 'no' ? 'checked' : ''}><span>还没有</span></label></div></div>
+      <label class="intake-field"><span>直播或短视频有哪些卡点、想解决什么问题？</span><textarea id="liveIssuesInput" maxlength="500" placeholder="简单写几句话就可以">${escapeAttribute(intakeData.liveIssues)}</textarea></label>
+    </div>
+  </div>`;
+  document.querySelectorAll('[name="hasAccount"]').forEach(input => input.addEventListener('change', event => { intakeData.hasAccount = event.target.value; $('accountDetails').classList.toggle('hidden', intakeData.hasAccount !== 'yes'); syncIntakeAnswer('account-intake'); }));
+  const bindValue = (id, key) => $(id)?.addEventListener('input', event => { intakeData[key] = event.target.value; syncIntakeAnswer('account-intake'); });
+  bindValue('accountNameInput', 'accountName'); bindValue('followersInput', 'followers'); bindValue('liveIssuesInput', 'liveIssues');
+  $('videoCountSelect')?.addEventListener('change', event => { intakeData.videoCount = event.target.value; syncIntakeAnswer('account-intake'); });
+  document.querySelectorAll('[name="hasLive"]').forEach(input => input.addEventListener('change', event => { intakeData.hasLive = event.target.value; syncIntakeAnswer('account-intake'); }));
+  const bindChecks = (name, key, countId) => document.querySelectorAll(`[name="${name}"]`).forEach(input => input.addEventListener('change', () => { intakeData[key] = [...document.querySelectorAll(`[name="${name}"]:checked`)].map(item => item.value); $(countId).textContent = intakeData[key].length ? `已选 ${intakeData[key].length} 项` : '可多选'; syncIntakeAnswer('account-intake'); }));
+  bindChecks('bottleneck', 'bottlenecks', 'bottleneckCount'); bindChecks('reason', 'reasons', 'reasonCount');
+}
 function renderQuestion() {
   const [section, title, options, mode, maxSelection] = questions[current];
   const optional = current >= questions.length - 2;
   const sectionLabel = {
     '行业与产品': '第一部分 · 行业与产品',
     '用户画像': '第二部分 · 用户画像',
+    '资料补充': '资料补充 · 不参与计分',
     '用户心理': '第三部分 · 用户心理',
     '情景反应': '第四部分 · 情景反应',
     '个人特质': '第五部分 · 个人特质',
@@ -217,10 +257,20 @@ function renderQuestion() {
   }[section] || section;
   $('sectionLabel').textContent = sectionLabel;
   $('questionTitle').textContent = title; $('currentNumber').textContent = String(current + 1).padStart(2, '0'); $('progressBar').style.width = `${((current + 1) / questions.length) * 100}%`; $('skipHint').textContent = mode === 'single' ? '单选题 · 请选择最符合的一项' : `多选题 · 最多选择 ${maxSelection} 项`;
+  if (mode === 'account-intake') {
+    $('questionMode').textContent = '资料填写 · 不参与测评计分';
+    $('skipHint').textContent = '选择“还没有”可直接进入下一题';
+    renderAccountIntake();
+    syncIntakeAnswer(mode);
+    $('prevButton').disabled = current === 0;
+    $('nextButton').innerHTML = '下一题 <span>→</span>';
+    return;
+  }
   const modeLabel = mode === 'single' ? '单选题' : maxSelection === 2 ? '双选题 · 最多 2 项' : '多选题 · 最多 ' + maxSelection + ' 项';
   $('questionMode').textContent = optional ? '可选 · ' + modeLabel : modeLabel;
   if (optional) $('skipHint').textContent = '可选题 · 不填写也可以继续';
-  $('options').innerHTML = options.map((option, index) => `<div class="option ${answers[current].includes(index) ? 'selected' : ''}" data-index="${index}"><span class="option-letter">${answers[current].includes(index) ? '✓' : String.fromCharCode(65 + index)}</span><div class="option-copy"><strong>${option[0]}</strong></div></div>`).join('');
+  $('options').innerHTML = options.map((option, index) => `<div class="option ${answers[current].includes(index) ? 'selected' : ''}" data-index="${index}"><span class="option-letter">${answers[current].includes(index) ? '✓' : String.fromCharCode(65 + index)}</span><div class="option-copy"><strong>${option[0]}</strong></div></div>`).join('') + (title === '你的用户收入水平主要是？' ? `<label class="intake-field annual-income-field"><span>你的年收入</span><input id="incomeInput" type="text" maxlength="40" value="${escapeAttribute(intakeData.income)}" placeholder="例如：20w / 暂无稳定收入"></label>` : '');
+  $('incomeInput')?.addEventListener('input', event => { intakeData.income = event.target.value; saveCache('quiz'); });
   document.querySelectorAll('.option').forEach(option => option.addEventListener('click', () => { const index = Number(option.dataset.index); const selected = answers[current]; if (selected.includes(index)) answers[current] = selected.filter(item => item !== index); else if (mode === 'single') answers[current] = [index]; else if (selected.length < maxSelection) answers[current] = [...selected, index]; else { showToast(`本题最多选择 ${maxSelection} 项`); return; } saveCache('quiz'); renderQuestion(); }));
   $('prevButton').disabled = current === 0; $('nextButton').disabled = !optional && answers[current].length === 0; $('nextButton').innerHTML = current === questions.length - 1 ? '查看结果 <span>↗</span>' : optional ? '下一题（可跳过） <span>→</span>' : '下一题 <span>→</span>';
 }
@@ -306,13 +356,21 @@ function buildSubmissionPayload(summary) {
     support_emotions: summary.support,
     avoid_emotions: summary.avoid,
     appearance_style: (appearanceStyles[selectedAppearanceIndex] || appearanceStyles[0]).name,
+    intake_profile: {
+      annual_income: intakeData.income.trim(),
+      has_account: intakeData.hasAccount === 'yes',
+      ...(intakeData.hasAccount === 'yes' ? {
+        account_name: intakeData.accountName.trim(), followers: intakeData.followers.trim(), bottlenecks: intakeData.bottlenecks,
+        video_count: intakeData.videoCount, reasons: intakeData.reasons, has_live: intakeData.hasLive === 'yes', live_issues: intakeData.liveIssues.trim()
+      } : {})
+    },
     emotion_scores: Object.fromEntries(summary.ranked),
     raw_answers: answers,
     answers_detail: questions.map((question, index) => ({
       number: index + 1,
       section: question[0],
       question: question[1],
-      answers: answers[index].map(optionIndex => question[2][optionIndex][0])
+      answers: question[3] === 'account-intake' ? [intakeData.hasAccount === 'yes' ? '拍过短视频，详情见资料档案' : '还没有拍过短视频'] : answers[index].map(optionIndex => question[2][optionIndex][0])
     }))
   };
 }
@@ -488,25 +546,33 @@ $('startButton').addEventListener('click', () => {
 });
 $('prevButton').addEventListener('click', () => { if (current > 0) { current--; saveCache('quiz'); renderQuestion(); } });
 $('nextButton').addEventListener('click', () => { if (current < questions.length - 1) { current++; saveCache('quiz'); renderQuestion(); } else { const summary = renderResults(); show('resultView'); submitAssessment(summary); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
-$('restartButton').addEventListener('click', () => { clearCache(); studentProfile = { name: '', contact: '', consentAt: '' }; submissionId = null; submissionState = 'idle'; show('introView'); $('headerStatus').textContent = '准备开始'; window.history.replaceState({}, '', window.location.pathname); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+$('restartButton').addEventListener('click', () => { clearCache(); studentProfile = { name: '', contact: '', consentAt: '' }; intakeData = { income: '', hasAccount: '', accountName: '', followers: '', bottlenecks: [], videoCount: '', reasons: [], hasLive: '', liveIssues: '' }; submissionId = null; submissionState = 'idle'; show('introView'); $('headerStatus').textContent = '准备开始'; window.history.replaceState({}, '', window.location.pathname); window.scrollTo({ top: 0, behavior: 'smooth' }); });
 $('studentForm').addEventListener('submit', event => {
   event.preventDefault();
   const name = $('studentName').value.trim();
-  if (!name || !$('studentConsent').checked) return;
+  const contact = $('studentContact').value.trim();
+  if (!/^[A-Za-z\u4e00-\u9fff· ]{2,30}$/.test(name)) { $('studentName').setCustomValidity('请输入 2–30 个中文或英文字符'); $('studentName').reportValidity(); return; }
+  $('studentName').setCustomValidity('');
+  if (!/^1\d{10}$/.test(contact)) { $('studentContact').setCustomValidity('请输入 11 位中国大陆手机号'); $('studentContact').reportValidity(); return; }
+  $('studentContact').setCustomValidity('');
+  if (!$('studentConsent').checked) return;
   studentProfile = {
     name,
-    contact: $('studentContact').value.trim(),
+    contact,
     consentAt: new Date().toISOString()
   };
   closeStudentModal();
   startFresh();
 });
 $('studentCloseButton').addEventListener('click', closeStudentModal);
+$('studentName').addEventListener('input', event => event.target.setCustomValidity(''));
+$('studentContact').addEventListener('input', event => event.target.setCustomValidity(''));
 $('resumeContinueButton').addEventListener('click', resumeFromCache);
 $('resumeRestartButton').addEventListener('click', () => {
   closeResumeModal();
   clearCache();
   studentProfile = { name: '', contact: '', consentAt: '' };
+  intakeData = { income: '', hasAccount: '', accountName: '', followers: '', bottlenecks: [], videoCount: '', reasons: [], hasLive: '', liveIssues: '' };
   if (window.AssessmentBackend && window.AssessmentBackend.configured) openStudentModal();
   else startFresh();
 });
@@ -524,7 +590,7 @@ function refreshIntroCopy() {
     legacyFrequency.textContent = '';
   }
   if (description) description.innerHTML = '用情绪表达做爆款，让更多人看到你<br>用信任表达做成交，让更多人选择你<br>通过七情情绪、用户画像和表达习惯<br>找到最适合你的短视频表达风格与拍摄方向';
-  if (note) note.textContent = `${questions.length} 题 · 约 8 分钟 · 含 2 题可选`;
+  if (note) note.textContent = '29 道测评题 · 1 步资料补充 · 约 8 分钟';
 }
 
 refreshIntroCopy();

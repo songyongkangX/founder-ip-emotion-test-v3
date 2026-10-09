@@ -30,10 +30,22 @@ create table if not exists public.assessment_submissions (
   support_emotions text[] not null default '{}',
   avoid_emotions text[] not null default '{}',
   appearance_style text,
+  intake_profile jsonb not null default '{}'::jsonb check (jsonb_typeof(intake_profile) = 'object'),
   emotion_scores jsonb not null default '{}'::jsonb check (jsonb_typeof(emotion_scores) = 'object'),
-  raw_answers jsonb not null default '[]'::jsonb check (jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 33)),
-  answers_detail jsonb not null default '[]'::jsonb check (jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 33))
+  raw_answers jsonb not null default '[]'::jsonb check (jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 30, 33)),
+  answers_detail jsonb not null default '[]'::jsonb check (jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 30, 33))
 );
+
+alter table public.assessment_submissions
+  add column if not exists intake_profile jsonb not null default '{}'::jsonb;
+alter table public.assessment_submissions
+  drop constraint if exists assessment_submissions_raw_answers_check;
+alter table public.assessment_submissions
+  add constraint assessment_submissions_raw_answers_check check (jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 30, 33));
+alter table public.assessment_submissions
+  drop constraint if exists assessment_submissions_answers_detail_check;
+alter table public.assessment_submissions
+  add constraint assessment_submissions_answers_detail_check check (jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 30, 33));
 
 create index if not exists assessment_submissions_submitted_at_idx
   on public.assessment_submissions (submitted_at desc);
@@ -101,8 +113,9 @@ with check (
   char_length(student_name) between 1 and 50
   and consent_at is not null
   and jsonb_typeof(emotion_scores) = 'object'
-  and jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 33)
-  and jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 33)
+  and jsonb_typeof(intake_profile) = 'object'
+  and jsonb_typeof(raw_answers) = 'array' and jsonb_array_length(raw_answers) in (29, 30, 33)
+  and jsonb_typeof(answers_detail) = 'array' and jsonb_array_length(answers_detail) in (29, 30, 33)
 );
 
 drop policy if exists "admins can read assessments" on public.assessment_submissions;

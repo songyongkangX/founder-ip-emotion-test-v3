@@ -128,6 +128,33 @@ body.modal-open { overflow: hidden; }
 .guide-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 .guide-meta span { padding: 6px 8px; color: var(--violet); background: #eee6ff; border-radius: 999px; font-size: 10px; line-height: 1.35; }
 .question-mode { display: block; margin-top: 10px; color: var(--violet); font-size: 11px; letter-spacing: .04em; }
+.intake-card { padding: 24px; background: rgba(252,250,255,.78); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 12px 32px #6d43d90d; }
+.intake-card > small { display: block; margin-top: 16px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.intake-field { display: grid; gap: 9px; color: var(--ink); font-size: 12px; font-weight: 600; }
+.intake-field input, .intake-field select, .intake-field textarea { width: 100%; box-sizing: border-box; padding: 14px 15px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 12px; font: 13px var(--sans); outline: none; }
+.intake-field textarea { min-height: 96px; resize: vertical; line-height: 1.65; }
+.annual-income-field { margin-top: 8px; padding: 18px; background: rgba(252,250,255,.78); border: 1px solid var(--line); border-radius: 16px; }
+.annual-income-field > span { color: var(--violet); font-size: 17px; font-weight: 700; letter-spacing: .02em; }
+.intake-field input:focus, .intake-field select:focus, .intake-field textarea:focus { border-color: var(--violet); box-shadow: 0 0 0 3px #6d43d914; }
+.binary-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.binary-choice label { cursor: pointer; }
+.binary-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.binary-choice span { display: block; padding: 15px; text-align: center; background: #fff; border: 1px solid var(--line); border-radius: 12px; font-size: 13px; }
+.binary-choice input:checked + span { color: var(--violet); background: #eee6ff; border-color: var(--violet); box-shadow: 5px 5px 0 #ddd0f4; }
+.account-details { display: grid; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+.account-details.hidden { display: none; }
+.intake-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.multi-dropdown { background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+.multi-dropdown summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 15px; cursor: pointer; font-size: 12px; font-weight: 600; list-style: none; }
+.multi-dropdown summary::-webkit-details-marker { display: none; }
+.multi-dropdown summary:after { content: '⌄'; color: var(--violet); font-size: 16px; }
+.multi-dropdown summary b { margin-left: auto; color: var(--violet); font-size: 10px; font-weight: 500; }
+.dropdown-options { display: grid; gap: 5px; max-height: 250px; padding: 6px 10px 12px; overflow: auto; border-top: 1px solid var(--line); }
+.check-row { display: flex; align-items: flex-start; gap: 9px; padding: 9px 7px; cursor: pointer; border-radius: 8px; font-size: 12px; line-height: 1.5; }
+.check-row:hover { background: #f6f1fc; }
+.check-row input { margin-top: 2px; accent-color: var(--violet); }
+.check-row .check-key { margin-right: 3px; color: var(--violet); font-size: 14px; font-weight: 700; }
+.binary-choice.compact span { padding: 12px; }
 @media (max-width: 700px) {
   .advanced-section { margin-top: 40px; padding-top: 30px; }
   .advanced-heading h3, .emotion-guide-heading h3 { font-size: 24px; }
@@ -136,6 +163,8 @@ body.modal-open { overflow: hidden; }
   .cross-group { padding: 18px; }
   .cross-card-grid { grid-template-columns: 1fr; }
   .emotion-guide-heading { margin-top: 34px; }
+  .intake-card { padding: 17px 14px; }
+  .intake-two { grid-template-columns: 1fr; }
 }
 
 /* Final conversion block on the result report. */
