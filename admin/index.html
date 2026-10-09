@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
   <title>学员测评管理后台</title>
-  <link rel="stylesheet" href="admin.css?v=20261008-1">
+  <link rel="stylesheet" href="admin.css?v=20261009-2">
 </head>
 <body>
   <main class="admin-shell">
@@ -19,54 +19,18 @@
       <div class="brand-mark">IP</div>
       <p class="eyebrow">Founder IP Assessment</p>
       <h1>学员测评管理后台</h1>
-      <p class="muted">仅受邀管理员可以查看学员资料与测评结果。</p>
+      <p class="muted">请输入受邀手机号和统一登录密码。</p>
 
       <form id="loginForm" class="stack-form">
-        <label>管理员邮箱
-          <input id="loginEmail" type="email" autocomplete="username" required placeholder="name@example.com">
+        <label>管理员手机号
+          <input id="loginPhone" type="tel" inputmode="numeric" autocomplete="username" pattern="1[0-9]{10}" maxlength="11" required placeholder="请输入 11 位手机号">
         </label>
         <label>登录密码
-          <input id="loginPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="至少 8 位">
+          <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="请输入统一密码">
         </label>
         <button class="primary-btn" type="submit">登录后台</button>
       </form>
-
-      <details class="bootstrap-box">
-        <summary>首次开通管理员</summary>
-        <p class="muted compact">仅在后台还没有任何管理员时可用。开通成功后，此入口会自动失效。</p>
-        <form id="bootstrapForm" class="stack-form">
-          <label>管理员邮箱
-            <input id="bootstrapEmail" type="email" autocomplete="email" required>
-          </label>
-          <label>设置登录密码
-            <input id="bootstrapPassword" type="password" autocomplete="new-password" minlength="8" required>
-          </label>
-          <label>确认登录密码
-            <input id="bootstrapPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required>
-          </label>
-          <label>首次开通凭证
-            <input id="bootstrapCode" type="password" inputmode="numeric" autocomplete="one-time-code" required>
-          </label>
-          <button class="secondary-btn" type="submit">完成首次开通</button>
-        </form>
-      </details>
       <p id="authMessage" class="form-message" aria-live="polite"></p>
-    </section>
-
-    <section id="passwordPanel" class="panel auth-panel hidden">
-      <p class="eyebrow">完成管理员邀请</p>
-      <h1>请设置你的登录密码</h1>
-      <p class="muted">密码设置完成后即可进入后台，后续使用邮箱和密码登录。</p>
-      <form id="passwordForm" class="stack-form">
-        <label>新密码
-          <input id="newPassword" type="password" autocomplete="new-password" minlength="8" required>
-        </label>
-        <label>确认新密码
-          <input id="newPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required>
-        </label>
-        <button class="primary-btn" type="submit">保存并进入后台</button>
-      </form>
-      <p id="passwordMessage" class="form-message" aria-live="polite"></p>
     </section>
 
     <section id="dashboard" class="dashboard hidden">
@@ -74,42 +38,35 @@
         <div>
           <p class="eyebrow">Founder IP Assessment</p>
           <h1>学员测评管理</h1>
-          <p id="adminIdentity" class="muted"></p>
+          <p class="muted">学员信息总览</p>
         </div>
         <div class="header-actions">
-          <button id="inviteButton" class="secondary-btn" type="button">邀请管理员</button>
-          <button id="logoutButton" class="ghost-btn" type="button">退出登录</button>
+          <details class="manager-menu">
+            <summary>管理 <span>⌄</span></summary>
+            <button id="inviteButton" type="button">邀请管理员</button>
+          </details>
         </div>
       </header>
 
       <section class="stats-grid" aria-label="测评概览">
         <article class="stat-card"><span>累计测评</span><strong id="totalCount">0</strong></article>
         <article class="stat-card"><span>今日新增</span><strong id="todayCount">0</strong></article>
-        <article class="stat-card"><span>最常见主情绪</span><strong id="topEmotion">—</strong></article>
-        <article class="stat-card"><span>最近提交</span><strong id="latestTime">—</strong></article>
+        <article class="stat-card"><span>最近提交分组</span><strong id="latestGroup">—</strong></article>
       </section>
 
       <section class="panel data-panel">
         <div class="toolbar">
           <div class="filters">
-            <label class="search-field"><span class="sr-only">搜索</span><input id="searchInput" type="search" placeholder="搜索姓名、联系方式、分组"></label>
-            <label><span class="sr-only">主情绪筛选</span><select id="emotionFilter"><option value="">全部主情绪</option></select></label>
-            <label><span class="sr-only">MBTI 筛选</span><select id="mbtiFilter"><option value="">全部 MBTI</option></select></label>
+            <label class="search-field"><span class="sr-only">搜索</span><input id="searchInput" type="search" placeholder="搜索姓名、手机号、分组或账号名称"></label>
           </div>
           <div class="toolbar-actions">
             <span id="recordCount" class="muted"></span>
-            <button id="exportButton" class="ghost-btn" type="button">导出 CSV</button>
             <button id="refreshButton" class="ghost-btn" type="button">刷新</button>
           </div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>学员</th><th>分组</th><th>提交时间</th><th>主情绪</th><th>MBTI</th><th>外在风格</th><th></th></tr></thead>
-            <tbody id="submissionRows"></tbody>
-          </table>
-          <div id="emptyState" class="empty-state hidden">暂时没有符合条件的测评记录。</div>
-        </div>
+        <div id="submissionRows" class="student-grid"></div>
+        <div id="emptyState" class="empty-state hidden">暂时没有符合条件的学员资料。</div>
         <p id="dashboardMessage" class="form-message" aria-live="polite"></p>
       </section>
     </section>
@@ -117,7 +74,7 @@
 
   <dialog id="detailDialog" class="dialog detail-dialog">
     <div class="dialog-head">
-      <div><p class="eyebrow">完整测评档案</p><h2 id="detailTitle">学员详情</h2></div>
+      <div><p class="eyebrow">测评结果</p><h2 id="detailTitle">学员结果</h2></div>
       <button class="icon-btn" type="button" data-close-dialog="detailDialog" aria-label="关闭">×</button>
     </div>
     <div id="detailContent" class="detail-content"></div>
@@ -132,18 +89,18 @@
       <div><p class="eyebrow">管理员权限</p><h2>邀请新管理员</h2></div>
       <button class="icon-btn" type="button" data-close-dialog="inviteDialog" aria-label="关闭">×</button>
     </div>
-    <p class="muted">对方会收到邀请邮件，通过链接设置密码后才能进入后台。</p>
+    <p class="muted">填写手机号后即可开通。对方使用手机号与统一密码登录。</p>
     <form id="inviteForm" class="stack-form">
-      <label>管理员邮箱
-        <input id="inviteEmail" type="email" required placeholder="name@example.com">
+      <label>管理员手机号
+        <input id="invitePhone" type="tel" inputmode="numeric" pattern="1[0-9]{10}" maxlength="11" required placeholder="请输入 11 位手机号">
       </label>
-      <button class="primary-btn" type="submit">发送邀请</button>
+      <button class="primary-btn" type="submit">开通管理员</button>
     </form>
     <p id="inviteMessage" class="form-message" aria-live="polite"></p>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../config.js"></script>
-  <script src="admin.js?v=20261008-1"></script>
+  <script src="admin.js?v=20261009-2"></script>
 </body>
 </html>

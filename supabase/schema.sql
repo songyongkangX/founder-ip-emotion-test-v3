@@ -3,6 +3,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.admin_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
+  phone text,
   display_name text,
   active boolean not null default true,
   must_change_password boolean not null default true,
@@ -10,6 +11,10 @@ create table if not exists public.admin_profiles (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.admin_profiles add column if not exists phone text;
+create unique index if not exists admin_profiles_phone_key
+  on public.admin_profiles (phone) where phone is not null;
 
 create table if not exists public.admin_bootstrap_lock (
   singleton boolean primary key default true check (singleton = true),

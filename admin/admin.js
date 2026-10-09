@@ -4,9 +4,10 @@
   const configured = Boolean(config.supabaseUrl && publicKey && window.supabase);
   const client = configured ? window.supabase.createClient(config.supabaseUrl, publicKey) : null;
   const state = { submissions: [], filtered: [], selectedId: null, admin: null };
+  const phoneToLoginEmail = (phone) => `admin-${phone}@founder-ip.local`;
 
   const $ = (id) => document.getElementById(id);
-  const panels = ['setupPanel', 'authPanel', 'passwordPanel', 'dashboard'];
+  const panels = ['setupPanel', 'authPanel', 'dashboard'];
   const setPanel = (id) => panels.forEach((panel) => $(panel).classList.toggle('hidden', panel !== id));
   const setMessage = (id, text = '', isError = false) => {
     const el = $(id);
@@ -35,7 +36,7 @@
   async function ensureAdmin(user) {
     const { data, error } = await client
       .from('admin_profiles')
-      .select('id,email,display_name,active,must_change_password')
+      .select('id,email,phone,display_name,active')
       .eq('id', user.id)
       .maybeSingle();
     if (error || !data?.active) return null;
@@ -56,10 +57,6 @@
       return;
     }
     state.admin = profile;
-    if (profile.must_change_password) {
-      setPanel('passwordPanel');
-      return;
-    }
     $('adminIdentity').textContent = profile.display_name || profile.email || session.user.email || '';
     setPanel('dashboard');
     await loadSubmissions();
@@ -77,46 +74,24 @@
       return;
     }
     state.submissions = data || [];
-    populateFilters();
     applyFilters();
     renderStats();
     setMessage('dashboardMessage');
   }
 
-  function populateFilters() {
-    const emotion = $('emotionFilter').value;
-    const mbti = $('mbtiFilter').value;
-    const emotions = [...new Set(state.submissions.map((item) => item.primary_emotion).filter(Boolean))].sort();
-    const mbtis = [...new Set(state.submissions.map((item) => item.mbti_type).filter(Boolean))].sort();
-    $('emotionFilter').innerHTML = '<option value="">全部主情绪</option>' + emotions.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
-    $('mbtiFilter').innerHTML = '<option value="">全部 MBTI</option>' + mbtis.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
-    $('emotionFilter').value = emotions.includes(emotion) ? emotion : '';
-    $('mbtiFilter').value = mbtis.includes(mbti) ? mbti : '';
-  }
-
   function applyFilters() {
     const query = $('searchInput').value.trim().toLowerCase();
-    const emotion = $('emotionFilter').value;
-    const mbti = $('mbtiFilter').value;
     state.filtered = state.submissions.filter((item) => {
-      const haystack = [item.student_name, item.student_contact, item.group_name].filter(Boolean).join(' ').toLowerCase();
-      return (!query || haystack.includes(query)) && (!emotion || item.primary_emotion === emotion) && (!mbti || item.mbti_type === mbti);
+      const intake = item.intake_profile && typeof item.intake_profile === 'object' ? item.intake_profile : {};
+      const haystack = [item.student_name, item.student_contact, item.group_name, intake.account_name].filter(Boolean).join(' ').toLowerCase();
+      return !query || haystack.includes(query);
     });
     renderRows();
   }
 
   function renderRows() {
     const body = $('submissionRows');
-    body.innerHTML = state.filtered.map((item) => `
-      <tr>
-        <td class="person-cell"><strong>${escapeHtml(item.student_name || '未填写')}</strong><span>${escapeHtml(item.student_contact || '无联系方式')}</span></td>
-        <td>${escapeHtml(item.group_name || '—')}</td>
-        <td>${escapeHtml(formatDate(item.submitted_at))}</td>
-        <td><span class="tag">${escapeHtml(item.primary_emotion || '—')}</span></td>
-        <td>${escapeHtml(item.mbti_type || '—')}</td>
-        <td>${escapeHtml(item.appearance_style || '—')}</td>
-        <td><button class="row-action" type="button" data-detail-id="${escapeHtml(item.id)}">查看</button></td>
-      </tr>`).join('');
+    body.innerHTML = state.filtered.map((item) => studentCard(item)).join('');
     $('recordCount').textContent = `显示 ${state.filtered.length} / ${state.submissions.length} 条`;
     $('emptyState').classList.toggle('hidden', state.filtered.length > 0);
   }
@@ -129,13 +104,38 @@
       const date = new Date(item.submitted_at);
       return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}` === todayKey;
     }).length);
-    const emotionCounts = state.submissions.reduce((counts, item) => {
-      if (item.primary_emotion) counts[item.primary_emotion] = (counts[item.primary_emotion] || 0) + 1;
-      return counts;
-    }, {});
-    const top = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0];
-    $('topEmotion').textContent = top ? top[0] : '—';
-    $('latestTime').textContent = state.submissions[0] ? formatDate(state.submissions[0].submitted_at, false) : '—';
+    $('latestGroup').textContent = state.submissions[0]?.group_name || '未分组';
+  }
+
+  function answerValue(item, question) {
+    const answer = (Array.isArray(item.answers_detail) ? item.answers_detail : []).find((entry) => entry.question === question);
+    if (!answer) return '—';
+    return Array.isArray(answer.answers) ? answer.answers.join('、') : (answer.answer || answer.selected || '—');
+  }
+
+  function infoItem(label, value) {
+    return `<div class="student-info"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value || '—')}</strong></div>`;
+  }
+
+  function studentCard(item) {
+    const intake = item.intake_profile && typeof item.intake_profile === 'object' ? item.intake_profile : {};
+    const hasAccount = intake.has_account;
+    return `<article class="student-card">
+      <header class="student-card-head"><div><h2>${escapeHtml(item.student_name || '未填写姓名')}</h2><p>${escapeHtml(item.student_contact || '未留手机号')} · ${escapeHtml(formatDate(item.submitted_at))}</p></div><span class="group-tag">${escapeHtml(item.group_name || '未分组')}</span></header>
+      <div class="student-info-grid">
+        ${infoItem('用户性别', answerValue(item, '你的用户性别主要是？'))}
+        ${infoItem('用户年龄', answerValue(item, '你的用户年龄主要是？'))}
+        ${infoItem('用户职业', answerValue(item, '你的用户职业主要是？'))}
+        ${infoItem('用户收入', answerValue(item, '你的用户收入水平主要是？'))}
+        ${infoItem('本人年收入', intake.annual_income || '—')}
+        ${infoItem('短视频经历', hasAccount ? '拍过' : '还没有')}
+        ${hasAccount ? infoItem('账号名称', intake.account_name || '—') : ''}
+        ${hasAccount ? infoItem('粉丝数量', intake.followers || '—') : ''}
+        ${hasAccount ? infoItem('短视频数量', intake.video_count || '—') : ''}
+      </div>
+      ${hasAccount ? `<div class="student-focus"><span>账号卡点</span><p>${escapeHtml((intake.bottlenecks || []).join('、') || '—')}</p><span>拍摄目的</span><p>${escapeHtml((intake.reasons || []).join('、') || '—')}</p><span>直播情况</span><p>${escapeHtml(`${intake.has_live ? '直播过' : '未直播'}${intake.live_issues ? ` · ${intake.live_issues}` : ''}`)}</p></div>` : ''}
+      <footer><button class="result-button" type="button" data-detail-id="${escapeHtml(item.id)}">查看学员测评结果 <span>→</span></button></footer>
+    </article>`;
   }
 
   function openDetail(id) {
@@ -146,27 +146,15 @@
     const support = Array.isArray(item.support_emotions) ? item.support_emotions.join('、') : '—';
     const avoid = Array.isArray(item.avoid_emotions) ? item.avoid_emotions.join('、') : '—';
     const scoreEntries = Object.entries(item.emotion_scores || {}).sort((a, b) => Number(b[1]) - Number(a[1]));
-    const answers = Array.isArray(item.answers_detail) ? item.answers_detail : [];
     const intake = item.intake_profile && typeof item.intake_profile === 'object' ? item.intake_profile : {};
-    const intakeDetails = intake.annual_income ? `<section class="detail-section"><h3>账号与经营资料</h3><div class="detail-summary">
-      ${summaryItem('本人年收入', intake.annual_income || '—')}${summaryItem('是否拍过短视频', intake.has_account ? '拍过' : '还没有')}
-      ${intake.has_account ? summaryItem('账号名称', intake.account_name || '—') + summaryItem('粉丝数量', intake.followers ?? '—') + summaryItem('短视频数量', intake.video_count || '—') + summaryItem('是否直播过', intake.has_live ? '是' : '否') : ''}
-    </div>${intake.has_account ? `<div class="score-list"><span>账号卡点：${escapeHtml((intake.bottlenecks || []).join('、') || '—')}</span><span>拍摄原因：${escapeHtml((intake.reasons || []).join('、') || '—')}</span><span>想解决的问题：${escapeHtml(intake.live_issues || '—')}</span></div>` : ''}</section>` : '';
     $('detailContent').innerHTML = `
       <div class="detail-summary">
-        ${summaryItem('联系方式', item.student_contact || '—')}
-        ${summaryItem('学员分组', item.group_name || '—')}
-        ${summaryItem('提交时间', formatDate(item.submitted_at))}
         ${summaryItem('主情绪', item.primary_emotion || '—')}
         ${summaryItem('辅助情绪', support)}
         ${summaryItem('需要规避', avoid)}
-        ${summaryItem('MBTI', item.mbti_type || '—')}
         ${summaryItem('外在风格', item.appearance_style || '—')}
-        ${summaryItem('测评版本', item.test_version || '—')}
       </div>
-      ${intakeDetails}
-      <section class="detail-section"><h3>情绪得分</h3><div class="score-list">${scoreEntries.map(([name, score]) => `<span>${escapeHtml(name)}：${escapeHtml(score)}</span>`).join('') || '<span>暂无</span>'}</div></section>
-      <section class="detail-section"><h3>完整答题记录</h3><ol class="answer-list">${answers.map((answer, index) => `<li><strong>${index + 1}. ${escapeHtml(answer.question || '')}</strong><span>${escapeHtml(Array.isArray(answer.answers) ? answer.answers.join('、') : (answer.answer || answer.selected || '未作答'))}</span></li>`).join('') || '<li><span>暂无答题明细</span></li>'}</ol></section>`;
+      <section class="detail-section"><h3>情绪维度</h3><div class="score-list">${scoreEntries.map(([name, score]) => `<span>${escapeHtml(name)}：${escapeHtml(score)}</span>`).join('') || '<span>暂无</span>'}</div></section>`;
     $('detailDialog').showModal();
   }
 
@@ -178,87 +166,27 @@
     return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
   }
 
-  function csvCell(value) {
-    let safeValue = String(value ?? '');
-    if (/^[=+\-@]/.test(safeValue)) safeValue = `'${safeValue}`;
-    return `"${safeValue.replace(/"/g, '""')}"`;
-  }
-
-  function exportCsv() {
-    if (!state.filtered.length) return setMessage('dashboardMessage', '当前没有可导出的记录。', true);
-    const headers = ['姓名', '联系方式', '分组', '提交时间', '主情绪', '辅助情绪', '需要规避', 'MBTI', '外在风格', '情绪得分', '完整答案'];
-    const rows = state.filtered.map((item) => [
-      item.student_name, item.student_contact, item.group_name, formatDate(item.submitted_at), item.primary_emotion,
-      (item.support_emotions || []).join('、'), (item.avoid_emotions || []).join('、'), item.mbti_type, item.appearance_style,
-      JSON.stringify(item.emotion_scores || {}), JSON.stringify(item.answers_detail || [])
-    ]);
-    const csv = '\ufeff' + [headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `学员测评-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
   $('loginForm').addEventListener('submit', async (event) => {
     event.preventDefault();
+    const phone = $('loginPhone').value.trim();
+    if (!/^1\d{10}$/.test(phone)) return setMessage('authMessage', '请输入正确的 11 位手机号。', true);
     setBusy(event.currentTarget, true);
     setMessage('authMessage', '正在登录…');
-    const { error } = await client.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPassword').value });
-    if (error) setMessage('authMessage', '登录失败，请检查邮箱和密码。', true);
-    setBusy(event.currentTarget, false);
-  });
-
-  $('bootstrapForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    if ($('bootstrapPassword').value !== $('bootstrapPasswordConfirm').value) return setMessage('authMessage', '两次输入的密码不一致。', true);
-    setBusy(event.currentTarget, true);
-    setMessage('authMessage', '正在开通首位管理员…');
-    try {
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/bootstrap-admin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: publicKey },
-        body: JSON.stringify({ email: $('bootstrapEmail').value.trim(), password: $('bootstrapPassword').value, accessCode: $('bootstrapCode').value })
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || '首次开通失败');
-      const { error } = await client.auth.signInWithPassword({ email: $('bootstrapEmail').value.trim(), password: $('bootstrapPassword').value });
-      if (error) throw error;
-    } catch (error) {
-      setMessage('authMessage', error.message || '首次开通失败，请稍后再试。', true);
-    } finally {
-      setBusy(event.currentTarget, false);
-    }
-  });
-
-  $('passwordForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const password = $('newPassword').value;
-    if (password !== $('newPasswordConfirm').value) return setMessage('passwordMessage', '两次输入的密码不一致。', true);
-    setBusy(event.currentTarget, true);
-    setMessage('passwordMessage', '正在保存…');
-    const { error: passwordError } = await client.auth.updateUser({ password });
-    if (passwordError) {
-      setMessage('passwordMessage', `密码保存失败：${passwordError.message}`, true);
-      setBusy(event.currentTarget, false);
-      return;
-    }
-    const { error: profileError } = await client.from('admin_profiles').update({ must_change_password: false }).eq('id', state.admin.id);
-    if (profileError) setMessage('passwordMessage', `权限状态更新失败：${profileError.message}`, true);
-    else await handleSession((await client.auth.getSession()).data.session);
+    const { error } = await client.auth.signInWithPassword({ email: phoneToLoginEmail(phone), password: $('loginPassword').value });
+    if (error) setMessage('authMessage', '该手机号尚未开通管理员权限，或密码不正确。', true);
     setBusy(event.currentTarget, false);
   });
 
   $('inviteForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     setBusy(event.currentTarget, true);
-    setMessage('inviteMessage', '正在发送邀请…');
-    const redirectTo = `${location.origin}${location.pathname}`;
-    const { data, error } = await client.functions.invoke('invite-admin', { body: { email: $('inviteEmail').value.trim(), redirectTo } });
+    const phone = $('invitePhone').value.trim();
+    if (!/^1\d{10}$/.test(phone)) { setMessage('inviteMessage', '请输入正确的 11 位手机号。', true); return; }
+    setMessage('inviteMessage', '正在开通…');
+    const { data, error } = await client.functions.invoke('invite-admin', { body: { phone } });
     if (error || data?.error) setMessage('inviteMessage', `邀请失败：${data?.error || error.message}`, true);
     else {
-      setMessage('inviteMessage', '邀请邮件已发送。');
+      setMessage('inviteMessage', '管理员已开通，可使用手机号和统一密码登录。');
       event.currentTarget.reset();
     }
     setBusy(event.currentTarget, false);
@@ -279,11 +207,9 @@
     const button = event.target.closest('[data-detail-id]');
     if (button) openDetail(button.dataset.detailId);
   });
-  ['searchInput', 'emotionFilter', 'mbtiFilter'].forEach((id) => $(id).addEventListener(id === 'searchInput' ? 'input' : 'change', applyFilters));
+  $('searchInput').addEventListener('input', applyFilters);
   $('refreshButton').addEventListener('click', loadSubmissions);
-  $('exportButton').addEventListener('click', exportCsv);
   $('inviteButton').addEventListener('click', () => { setMessage('inviteMessage'); $('inviteDialog').showModal(); });
-  $('logoutButton').addEventListener('click', () => client.auth.signOut());
   document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => closeDialog(button.dataset.closeDialog)));
   document.querySelectorAll('dialog').forEach((dialog) => dialog.addEventListener('click', (event) => {
     if (event.target === dialog) dialog.close();
