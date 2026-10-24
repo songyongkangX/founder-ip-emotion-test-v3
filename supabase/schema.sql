@@ -144,3 +144,18 @@ grant insert on table public.assessment_submissions to anon, authenticated;
 grant select, delete on table public.assessment_submissions to authenticated;
 
 revoke all on table public.admin_bootstrap_lock from anon, authenticated;
+
+-- A harmless database call used by the scheduled GitHub Action to keep the
+-- free project active. It returns only the database clock and exposes no data.
+create or replace function public.project_keepalive()
+returns timestamptz
+language sql
+stable
+security invoker
+set search_path = public
+as $$
+  select now();
+$$;
+
+revoke all on function public.project_keepalive() from public;
+grant execute on function public.project_keepalive() to anon, authenticated;

@@ -1,0 +1,26 @@
+name: Keep Supabase project active
+
+on:
+  schedule:
+    - cron: '17 3 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call database keepalive
+        env:
+          SUPABASE_URL: https://pdqktkzbtgzdlagfgcae.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_VEGUsWrxfM2pHB0BqgEo2Q_FbaI5PJx
+        run: |
+          curl --fail-with-body --retry 3 --retry-delay 5 \
+            --request POST \
+            "${SUPABASE_URL}/rest/v1/rpc/project_keepalive" \
+            --header "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            --header "Content-Type: application/json" \
+            --data '{}'
