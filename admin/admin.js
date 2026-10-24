@@ -2,9 +2,17 @@
   const config = window.APP_CONFIG || {};
   const publicKey = config.supabasePublishableKey || config.supabaseAnonKey;
   const configured = Boolean(config.supabaseUrl && publicKey && window.supabase);
-  const client = configured ? window.supabase.createClient(config.supabaseUrl, publicKey) : null;
+  const client = configured ? window.supabase.createClient(config.supabaseUrl, publicKey, {
+    auth: {
+      // 部分 iOS 内置浏览器会限制本地存储或延迟会话锁；后台当前页面使用内存会话即可。
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  }) : null;
   const state = { submissions: [], filtered: [], selectedId: null, admin: null };
   const sharedAdminEmail = 'dashboard-access@founder-ip.local';
+  const connectionHelp = '当前浏览器无法连接数据服务。请点右上角“…”选择在系统浏览器打开，或切换网络后重试。';
 
   const $ = (id) => document.getElementById(id);
   const panels = ['setupPanel', 'authPanel', 'dashboard'];
@@ -27,6 +35,27 @@
       ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {})
     }).format(date);
   };
+  const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+  async function signInSharedAdmin(password) {
+    const request = async () => {
+      try {
+        return await client.auth.signInWithPassword({ email: sharedAdminEmail, password });
+      } catch (error) {
+        return { data: null, error };
+      }
+    };
+    let result = await request();
+    const invalidPassword = result.error?.code === 'invalid_credentials'
+      || /invalid login credentials/i.test(result.error?.message || '');
+
+    // 手机内置浏览器刚打开页面时偶发首个请求失败，短暂等待后自动重试一次。
+    if (result.error && !invalidPassword) {
+      await wait(650);
+      result = await request();
+    }
+    return result;
+  }
 
   function closeDialog(id) {
     const dialog = $(id);
@@ -39,7 +68,8 @@
       .select('id,email,phone,display_name,active')
       .eq('id', user.id)
       .maybeSingle();
-    if (error || !data?.active) return null;
+    if (error) throw error;
+    if (!data?.active) return null;
     return data;
   }
 
@@ -49,7 +79,14 @@
       setPanel('authPanel');
       return;
     }
-    const profile = await ensureAdmin(session.user);
+    let profile;
+    try {
+      profile = await ensureAdmin(session.user);
+    } catch (error) {
+      setPanel('authPanel');
+      setMessage('authMessage', connectionHelp, true);
+      return;
+    }
     if (!profile) {
       await client.auth.signOut();
       setPanel('authPanel');
@@ -171,10 +208,13 @@
     setBusy(form, true);
     setMessage('authMessage', '正在登录…');
     const password = $('loginPassword').value.trim().replace(/[０-９]/g, (digit) => String.fromCharCode(digit.charCodeAt(0) - 0xFEE0));
-    const { error } = await client.auth.signInWithPassword({ email: sharedAdminEmail, password });
+    const { data, error } = await signInSharedAdmin(password);
     if (error) {
       const invalidPassword = error.code === 'invalid_credentials' || /invalid login credentials/i.test(error.message || '');
-      setMessage('authMessage', invalidPassword ? '密码不正确，请重新输入。' : '登录服务暂时没有响应，请刷新页面后重试。', true);
+      setMessage('authMessage', invalidPassword ? '密码不正确，请重新输入。' : connectionHelp, true);
+    } else if (data?.session) {
+      setMessage('authMessage');
+      await handleSession(data.session);
     }
     setBusy(form, false);
   });
@@ -222,11 +262,6 @@
     if (!configured) return setPanel('setupPanel');
     const { data } = await client.auth.getSession();
     await handleSession(data.session);
-    client.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'PASSWORD_RECOVERY') {
-        window.setTimeout(() => handleSession(session), 0);
-      }
-    });
   }
 
   init();
